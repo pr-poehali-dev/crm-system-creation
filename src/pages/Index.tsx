@@ -6,6 +6,7 @@ import FinanceSection from '@/components/FinanceSection';
 import SettingsSection from '@/components/SettingsSection';
 import CalendarSection from '@/components/CalendarSection';
 import IntegrationsPage from '@/components/IntegrationsPage';
+import LeadsSection from '@/components/LeadsSection';
 import AddVehicleDialog from '@/components/AddVehicleDialog';
 import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
 import VehicleDetailDialog from '@/components/VehicleDetailDialog';
@@ -130,6 +131,7 @@ const Index = () => {
         
         {[
           { id: 'dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
+          { id: 'leads', icon: 'Zap', label: 'Лиды' },
           { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
           { id: 'requests', icon: 'ClipboardList', label: 'Заявки' },
           { id: 'clients', icon: 'Users', label: 'Клиенты' },
@@ -769,6 +771,8 @@ const Index = () => {
               </CardContent>
             </Card>
           )}
+
+          {activeSection === 'leads' && <LeadsSection />}
 
           {activeSection === 'calendar' && <CalendarSection />}
 

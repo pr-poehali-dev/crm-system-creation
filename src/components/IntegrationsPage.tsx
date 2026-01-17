@@ -282,7 +282,7 @@ export const IntegrationsPage = () => {
                             <div className="space-y-2 text-sm">
                               <p className="font-medium">Авито подключён успешно!</p>
                               <p className="text-muted-foreground">
-                                Теперь вы можете синхронизировать свой автопарк с объявлениями на Avito
+                                Все новые сообщения от клиентов с Avito будут автоматически появляться в разделе "Лиды"
                               </p>
                             </div>
                           </div>
@@ -291,52 +291,47 @@ export const IntegrationsPage = () => {
 
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium">Автоматическое обновление объявлений</div>
-                          <div className="text-sm text-muted-foreground">Поднимать объявления каждые 2 часа</div>
+                          <div className="font-medium">Получать уведомления о новых сообщениях</div>
+                          <div className="text-sm text-muted-foreground">Автоматически создавать лид при обращении</div>
                         </div>
                         <Switch 
-                          checked={selectedIntegration.config?.auto_update || false}
-                          onCheckedChange={(checked) => updateConfig('auto_update', checked)}
+                          checked={selectedIntegration.config?.auto_leads !== false}
+                          onCheckedChange={(checked) => updateConfig('auto_leads', checked)}
                         />
                       </div>
 
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium">Снимать с публикации занятые авто</div>
-                          <div className="text-sm text-muted-foreground">При бронировании автоматически убирать из Avito</div>
+                          <div className="font-medium">Звуковое уведомление</div>
+                          <div className="text-sm text-muted-foreground">Оповещать звуком о новых сообщениях</div>
                         </div>
                         <Switch 
-                          checked={selectedIntegration.config?.hide_booked !== false}
-                          onCheckedChange={(checked) => updateConfig('hide_booked', checked)}
+                          checked={selectedIntegration.config?.sound_notify || false}
+                          onCheckedChange={(checked) => updateConfig('sound_notify', checked)}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Шаблон описания объявления</Label>
-                        <Textarea 
-                          placeholder="Аренда {model} в отличном состоянии. Год выпуска {year}. Цена {price} руб/сутки."
-                          rows={4}
-                          value={selectedIntegration.config?.ad_template || ''}
-                          onChange={(e) => updateConfig('ad_template', e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Доступные переменные: {'{model}'}, {'{year}'}, {'{price}'}, {'{number}'}
-                        </p>
+                        <Label>Ответственный за лиды с Avito</Label>
+                        <select className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                          <option>Распределять автоматически</option>
+                          <option>Анна К.</option>
+                          <option>Сергей П.</option>
+                          <option>Дмитрий И.</option>
+                        </select>
                       </div>
 
-                      <Button 
-                        className="w-full bg-gradient-to-r from-primary to-secondary"
-                        size="lg"
-                        onClick={() => {
-                          toast({
-                            title: "Синхронизация запущена",
-                            description: "Ваш автопарк публикуется на Avito. Это займёт несколько минут.",
-                          });
-                        }}
-                      >
-                        <Icon name="Upload" size={18} className="mr-2" />
-                        Опубликовать автопарк на Avito
-                      </Button>
+                      <Card className="bg-muted">
+                        <CardContent className="pt-4">
+                          <p className="text-sm font-medium mb-2">Что будет происходить:</p>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• Новые сообщения → автоматически создаются лиды</li>
+                            <li>• Все диалоги доступны в разделе "Лиды"</li>
+                            <li>• Можно отвечать клиентам прямо из CRM</li>
+                            <li>• История общения сохраняется</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
                     </TabsContent>
 
                     <TabsContent value="help" className="space-y-4 mt-4">
