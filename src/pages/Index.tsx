@@ -7,6 +7,7 @@ import SettingsSection from '@/components/SettingsSection';
 import CalendarSection from '@/components/CalendarSection';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import LeadsSection from '@/components/LeadsSection';
+import ClientsSection from '@/components/ClientsSection';
 import AddVehicleDialog from '@/components/AddVehicleDialog';
 import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
 import VehicleDetailDialog from '@/components/VehicleDetailDialog';
@@ -969,6 +970,14 @@ const Index = () => {
           })()}
         </DialogContent>
       </Dialog>
+
+      {activeSection === 'services' && <ServicesSection />}
+      {activeSection === 'finance' && <FinanceSection />}
+      {activeSection === 'settings' && <SettingsSection />}
+      {activeSection === 'calendar' && <CalendarSection />}
+      {activeSection === 'integrations' && <IntegrationsPage />}
+      {activeSection === 'leads' && <LeadsSection />}
+      {activeSection === 'clients' && <ClientsSection />}
 
       <AddVehicleDialog 
         open={isAddVehicleOpen} 
