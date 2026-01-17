@@ -52,12 +52,7 @@ export const LeadsSection = () => {
       });
       
       const response = await fetch(
-        'https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d?' + 
-        new URLSearchParams({
-          client_id: 'VzbKJ5EdJ2AYmep_vm_v',
-          client_secret: 'izyN_j0WXoT6iEUnIwMQsynqGDndAuuHkAxwveyV',
-          user_id: '393750909'
-        })
+        'https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d'
       );
       
       if (!response.ok) {

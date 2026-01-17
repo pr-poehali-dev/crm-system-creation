@@ -30,11 +30,21 @@ def handler(event: dict, context) -> dict:
             'isBase64Encoded': False
         }
     
-    # Получаем учетные данные из query parameters или секретов
-    query = event.get('queryStringParameters') or {}
-    client_id = query.get('client_id', os.environ.get('AVITO_CLIENT_ID', 'VzbKJ5EdJ2AYmep_vm_v'))
-    client_secret = query.get('client_secret', os.environ.get('AVITO_CLIENT_SECRET', 'izyN_j0WXoT6iEUnIwMQsynqGDndAuuHkAxwveyV'))
-    user_id = query.get('user_id', os.environ.get('AVITO_USER_ID', '393750909'))
+    # Получаем учетные данные ТОЛЬКО из секретов (безопасность!)
+    client_id = os.environ.get('AVITO_CLIENT_ID')
+    client_secret = os.environ.get('AVITO_CLIENT_SECRET')
+    user_id = os.environ.get('AVITO_USER_ID')
+    
+    if not client_id or not client_secret or not user_id:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'error': 'Не настроены ключи Avito',
+                'message': 'Добавьте секреты AVITO_CLIENT_ID, AVITO_CLIENT_SECRET и AVITO_USER_ID в настройках проекта'
+            }),
+            'isBase64Encoded': False
+        }
     
     # Получаем access token
     try:
