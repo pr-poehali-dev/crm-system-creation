@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 
@@ -21,6 +23,11 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAccessRequestOpen, setIsAccessRequestOpen] = useState(false);
+  const [requestName, setRequestName] = useState('');
+  const [requestEmail, setRequestEmail] = useState('');
+  const [requestReason, setRequestReason] = useState('');
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +42,25 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           description: `Добро пожаловать, ${user.name}!`,
         });
         onLogin(username.toLowerCase());
+        setLoginAttempts(0);
       } else {
-        toast({
-          title: "Ошибка входа",
-          description: "Неверный логин или пароль",
-          variant: "destructive",
-        });
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        
+        if (newAttempts >= 3) {
+          toast({
+            title: "Доступ запрещён",
+            description: "У вас нет прав для входа в систему. Запросите доступ.",
+            variant: "destructive",
+          });
+          setIsAccessRequestOpen(true);
+        } else {
+          toast({
+            title: "Ошибка входа",
+            description: `Неверный логин или пароль. Попыток осталось: ${3 - newAttempts}`,
+            variant: "destructive",
+          });
+        }
       }
       
       setIsLoading(false);
@@ -176,8 +196,145 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
               </div>
             </CardContent>
           </Card>
+
+          <div className="pt-4 border-t border-border">
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setIsAccessRequestOpen(true)}
+            >
+              <Icon name="UserPlus" size={18} className="mr-2" />
+              Получить доступ к CRM "Русская Фантазия"
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isAccessRequestOpen} onOpenChange={setIsAccessRequestOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white">
+                <Icon name="Lock" size={24} />
+              </div>
+              <div>
+                <DialogTitle>Запрос доступа</DialogTitle>
+                <DialogDescription>
+                  Заполните форму для получения доступа к CRM
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Card className="bg-warning/10 border-warning/30">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-start gap-3">
+                  <Icon name="AlertTriangle" size={20} className="text-warning mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Доступ ограничен</p>
+                    <p className="text-muted-foreground">
+                      CRM «Русская Фантазия» доступна только авторизованным сотрудникам.
+                      Доступ предоставляется генеральными директорами.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-2">
+              <Label htmlFor="request_name">Ваше имя *</Label>
+              <Input
+                id="request_name"
+                placeholder="Иван Иванов"
+                value={requestName}
+                onChange={(e) => setRequestName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="request_email">Email или телефон *</Label>
+              <Input
+                id="request_email"
+                placeholder="ivan@example.com или +7 999 123-45-67"
+                value={requestEmail}
+                onChange={(e) => setRequestEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="request_reason">Причина запроса доступа *</Label>
+              <Textarea
+                id="request_reason"
+                placeholder="Опишите, зачем вам нужен доступ к CRM и какую должность вы занимаете..."
+                rows={4}
+                value={requestReason}
+                onChange={(e) => setRequestReason(e.target.value)}
+              />
+            </div>
+
+            <Card className="bg-info/10 border-info/30">
+              <CardContent className="pt-3 pb-3">
+                <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <Icon name="Info" size={16} className="text-info mt-0.5 flex-shrink-0" />
+                  <p>
+                    Ваш запрос будет отправлен генеральным директорам Никите и Марине.
+                    Они рассмотрят вашу заявку и свяжутся с вами.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAccessRequestOpen(false);
+                setRequestName('');
+                setRequestEmail('');
+                setRequestReason('');
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-primary to-secondary"
+              onClick={() => {
+                if (!requestName || !requestEmail || !requestReason) {
+                  toast({
+                    title: "Заполните все поля",
+                    description: "Все поля обязательны для заполнения",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                toast({
+                  title: "Запрос отправлен",
+                  description: "Генеральные директора рассмотрят вашу заявку. Ожидайте ответа на указанные контакты.",
+                });
+
+                console.log('Access request:', {
+                  name: requestName,
+                  contact: requestEmail,
+                  reason: requestReason,
+                  timestamp: new Date().toISOString(),
+                });
+
+                setIsAccessRequestOpen(false);
+                setRequestName('');
+                setRequestEmail('');
+                setRequestReason('');
+                setLoginAttempts(0);
+              }}
+            >
+              <Icon name="Send" size={18} className="mr-2" />
+              Отправить запрос
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
