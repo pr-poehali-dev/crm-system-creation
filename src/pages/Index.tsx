@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ServicesSection from '@/components/ServicesSection';
 import FinanceSection from '@/components/FinanceSection';
 import SettingsSection from '@/components/SettingsSection';
+import CalendarSection from '@/components/CalendarSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,7 @@ const Index = () => {
         
         {[
           { id: 'dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
+          { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
           { id: 'requests', icon: 'ClipboardList', label: 'Заявки' },
           { id: 'clients', icon: 'Users', label: 'Клиенты' },
           { id: 'fleet', icon: 'Car', label: 'Автопарк' },
@@ -297,94 +299,198 @@ const Index = () => {
           </div>
 
           {activeSection === 'dashboard' && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, idx) => (
-                  <Card key={idx} className="bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-105 animate-scale-in" style={{ animationDelay: `${idx * 100}ms` }}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardDescription>{stat.label}</CardDescription>
-                        <div className={cn(
-                          'w-10 h-10 rounded-lg flex items-center justify-center',
-                          stat.trend === 'up' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
-                        )}>
-                          <Icon name={stat.icon as any} size={20} />
-                        </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <Card className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Edit" size={20} className="text-purple-500" />
+                        <CardTitle className="text-lg">Вишлист</CardTitle>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-baseline justify-between">
-                        <div className="text-3xl font-bold">{stat.value}</div>
-                        <Badge variant="outline" className={stat.trend === 'up' ? 'text-success border-success/30' : 'text-destructive border-destructive/30'}>
-                          {stat.change}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 bg-card/50 backdrop-blur border-border/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="TrendingUp" size={24} className="text-primary" />
-                      Выручка по услугам
-                    </CardTitle>
+                      <Icon name="ChevronLeft" size={20} className="text-purple-500" />
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        { service: 'Аренда транспорта', revenue: '₽680K', percentage: 65 },
-                        { service: 'Выездные услуги', revenue: '₽320K', percentage: 30 },
-                        { service: 'Абонементы', revenue: '₽150K', percentage: 15 },
-                        { service: 'Пакеты', revenue: '₽50K', percentage: 5 },
-                      ].map((item, idx) => (
-                        <div key={idx} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">{item.service}</span>
-                            <span className="text-muted-foreground">{item.revenue}</span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-1000"
-                              style={{ width: `${item.percentage}%` }}
-                            />
-                          </div>
+                    <div className="text-sm text-muted-foreground mb-4">На сумму 9 000 руб (1)</div>
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-purple-600 text-white">7 000</Badge>
+                          <span className="text-xs text-muted-foreground">300 км</span>
                         </div>
+                        <div className="text-sm">
+                          <div className="font-medium">Клиент</div>
+                          <div className="text-xs text-muted-foreground">+79084431152 → Краснодар</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Users" size={20} className="text-orange-500" />
+                        <CardTitle className="text-lg">Заняки</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-orange-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground mb-4">На сумму 152 000 руб (3)</div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-red-600 text-white">40 000</Badge>
+                          <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Клецов Иван → Краснодар</div>
+                          <div className="text-xs text-muted-foreground">06.02.2026 13:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-red-600 text-white">34 000</Badge>
+                          <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Сартсев Кадикис → Краснодар</div>
+                          <div className="text-xs text-muted-foreground">06.02.2026 20:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-orange-600 text-white">108 000</Badge>
+                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Пылкиков Дмитрий → Санкт-Петербург</div>
+                          <div className="text-xs text-muted-foreground">22.02.2026 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">08.03.2026 10:00 — Офис</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={20} className="text-blue-500" />
+                        <CardTitle className="text-lg">Брони</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-blue-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground mb-4">На сумму 792 000 руб (13)</div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">53 200</Badge>
+                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Быков Александр → Санкт-Петербург</div>
+                          <div className="text-xs text-muted-foreground">22.01.2026 12:00 — Доставка</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">42 000</Badge>
+                          <Badge variant="secondary" className="text-xs">О304СВ193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Шлейгер Дмитрий → Москва</div>
+                          <div className="text-xs text-muted-foreground">19.01.2026 15:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">21.01.2026 15:00 — Офис</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Car" size={20} className="text-green-500" />
+                        <CardTitle className="text-lg">В аренде</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-green-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground mb-4">На сумму -60 500 руб (6)</div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">88 000</Badge>
+                          <Badge variant="secondary" className="text-xs">А218ЕТ550</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Трушкин Илья → Москва</div>
+                          <div className="text-xs text-muted-foreground">07.01.2026 20:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">18.01.2026 20:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50 relative">
+                        <Badge className="absolute top-2 right-2 bg-red-600 text-white text-xs">Просрочка!</Badge>
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">48 000</Badge>
+                          <Badge variant="secondary" className="text-xs">Р828ТУ193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Замятин Дмитрий → Москва</div>
+                          <div className="text-xs text-muted-foreground">13.01.2026 20:00 — Доставка</div>
+                          <div className="text-xs text-muted-foreground">18.01.2026 20:00 — Доставка</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-orange-100/30 border-orange-500/30">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="AlertCircle" size={20} className="text-orange-600" />
+                      <CardTitle className="text-lg text-orange-900">Истекает страховка</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {['Н692АН126', 'В118ВС777', 'А194ЕЕ193', 'В118ВС777', 'А218ЕТ550', 'Н692АН126'].map((num, idx) => (
+                        <Badge key={idx} variant="destructive" className="mr-2">{num}</Badge>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur border-border/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Target" size={24} className="text-secondary" />
-                      Каналы заявок
-                    </CardTitle>
+                <Card className="bg-red-100/30 border-red-500/30">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="AlertTriangle" size={20} className="text-red-600" />
+                      <CardTitle className="text-lg text-red-900">Необходимо обслуживание</CardTitle>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        { channel: 'Сайт', count: 18, color: 'from-primary to-secondary' },
-                        { channel: 'WhatsApp', count: 15, color: 'from-success to-info' },
-                        { channel: 'Telegram', count: 8, color: 'from-info to-primary' },
-                        { channel: 'Avito', count: 6, color: 'from-accent to-warning' },
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={cn('w-3 h-3 rounded-full bg-gradient-to-r', item.color)} />
-                            <span className="font-medium">{item.channel}</span>
-                          </div>
-                          <Badge variant="secondary">{item.count}</Badge>
-                        </div>
+                    <div className="space-y-2">
+                      {['Н692АН126', 'Н692АН126', 'Х776ТС193', 'Р828ТУ193', 'В118ВС777', 'А194ЕЕ193', 'В118ВС777', 'А218ЕТ550', 'Н692АН126', 'Р828ТУ193', 'В118ВС777'].map((num, idx) => (
+                        <Badge key={idx} className="mr-2 bg-red-600 text-white">{num}</Badge>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </>
+            </div>
           )}
 
           {activeSection === 'requests' && (
@@ -572,6 +678,8 @@ const Index = () => {
               </CardContent>
             </Card>
           )}
+
+          {activeSection === 'calendar' && <CalendarSection />}
 
           {activeSection === 'services' && <ServicesSection />}
 
