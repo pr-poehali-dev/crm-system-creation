@@ -128,6 +128,9 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           client_phone: foundClient.phone,
           client_email: foundClient.email || '',
           client_city: foundClient.city || '',
+          client_birth_date: foundClient.birth_date || '',
+          client_telegram: foundClient.telegram || '',
+          client_whatsapp: foundClient.whatsapp || '',
         }));
         toast({
           title: '✅ Клиент найден',
@@ -159,6 +162,9 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           client_phone: foundClient.phone,
           client_email: foundClient.email || '',
           client_city: foundClient.city || '',
+          client_birth_date: foundClient.birth_date || '',
+          client_telegram: foundClient.telegram || '',
+          client_whatsapp: foundClient.whatsapp || '',
         }));
         toast({
           title: '✅ Клиент найден',
@@ -653,6 +659,28 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 </SelectContent>
               </Select>
             </div>
+
+            {bookingData.communication_channel === 'telegram' && (
+              <div className="space-y-2">
+                <Label>Ник в Telegram *</Label>
+                <Input
+                  placeholder="@username"
+                  value={bookingData.client_telegram || ''}
+                  onChange={(e) => updateData('client_telegram', e.target.value)}
+                />
+              </div>
+            )}
+
+            {bookingData.communication_channel === 'whatsapp' && bookingData.client_whatsapp && (
+              <div className="space-y-2">
+                <Label>WhatsApp</Label>
+                <Input
+                  value={bookingData.client_whatsapp || bookingData.client_phone}
+                  onChange={(e) => updateData('client_whatsapp', e.target.value)}
+                  disabled
+                />
+              </div>
+            )}
 
             <label className="flex items-center gap-2">
               <input type="checkbox" className="w-5 h-5" />

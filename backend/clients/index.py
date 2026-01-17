@@ -31,7 +31,7 @@ def handler(event: dict, context) -> dict:
             cursor.execute("""
                 SELECT id, name, phone, email, company, telegram, whatsapp, 
                        city, balance, total_spent, orders_count, rating, 
-                       source, is_blacklist, notes, created_at
+                       source, is_blacklist, notes, created_at, birth_date
                 FROM t_p81623955_crm_system_creation.clients
                 ORDER BY created_at DESC
             """)
@@ -54,7 +54,8 @@ def handler(event: dict, context) -> dict:
                     'source': row[12],
                     'is_blacklist': row[13] or False,
                     'notes': row[14],
-                    'created_at': row[15].isoformat() if row[15] else None
+                    'created_at': row[15].isoformat() if row[15] else None,
+                    'birth_date': row[16].isoformat() if row[16] else None
                 })
             
             cursor.close()
@@ -75,10 +76,10 @@ def handler(event: dict, context) -> dict:
             
             cursor.execute("""
                 INSERT INTO t_p81623955_crm_system_creation.clients 
-                (name, phone, email, company, telegram, whatsapp, city, notes, source)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (name, phone, email, company, telegram, whatsapp, city, notes, source, birth_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, name, phone, email, company, telegram, whatsapp, 
-                          city, balance, created_at
+                          city, balance, created_at, birth_date
             """, (
                 body.get('name'),
                 body.get('phone'),
@@ -88,7 +89,8 @@ def handler(event: dict, context) -> dict:
                 body.get('whatsapp'),
                 body.get('city'),
                 body.get('notes'),
-                body.get('source', 'manual')
+                body.get('source', 'manual'),
+                body.get('birth_date')
             ))
             
             row = cursor.fetchone()
@@ -102,7 +104,8 @@ def handler(event: dict, context) -> dict:
                 'whatsapp': row[6],
                 'city': row[7],
                 'balance': float(row[8]) if row[8] else 0,
-                'created_at': row[9].isoformat() if row[9] else None
+                'created_at': row[9].isoformat() if row[9] else None,
+                'birth_date': row[10].isoformat() if row[10] else None
             }
             
             cursor.close()
@@ -126,10 +129,10 @@ def handler(event: dict, context) -> dict:
                 UPDATE t_p81623955_crm_system_creation.clients
                 SET name = %s, phone = %s, email = %s, company = %s,
                     telegram = %s, whatsapp = %s, city = %s, notes = %s,
-                    is_blacklist = %s, updated_at = CURRENT_TIMESTAMP
+                    is_blacklist = %s, birth_date = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                 RETURNING id, name, phone, email, company, telegram, whatsapp,
-                          city, balance, is_blacklist, updated_at
+                          city, balance, is_blacklist, updated_at, birth_date
             """, (
                 body.get('name'),
                 body.get('phone'),
@@ -140,6 +143,7 @@ def handler(event: dict, context) -> dict:
                 body.get('city'),
                 body.get('notes'),
                 body.get('is_blacklist', False),
+                body.get('birth_date'),
                 client_id
             ))
             
@@ -164,7 +168,8 @@ def handler(event: dict, context) -> dict:
                 'city': row[7],
                 'balance': float(row[8]) if row[8] else 0,
                 'is_blacklist': row[9],
-                'updated_at': row[10].isoformat() if row[10] else None
+                'updated_at': row[10].isoformat() if row[10] else None,
+                'birth_date': row[11].isoformat() if row[11] else None
             }
             
             cursor.close()

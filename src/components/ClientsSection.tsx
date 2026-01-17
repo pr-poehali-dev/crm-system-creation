@@ -36,6 +36,7 @@ interface ClientsSectionProps {
 }
 
 const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57';
+const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
 
 export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectionProps = {}) => {
   const { toast } = useToast();
@@ -46,6 +47,8 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
   const [editClient, setEditClient] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [clientBookings, setClientBookings] = useState<any[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
 
   const [newClient, setNewClient] = useState({
     name: initialClientData?.name || '',
@@ -105,6 +108,25 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadClientBookings = async (clientId: number) => {
+    try {
+      setIsLoadingBookings(true);
+      const response = await fetch(BOOKINGS_API);
+      const data = await response.json();
+      // Фильтруем заказы по ID клиента (или по имени/телефону)
+      const clientName = selectedClient?.name;
+      const clientPhone = selectedClient?.phone;
+      const bookings = data.bookings?.filter((b: any) => 
+        b.client_name === clientName || b.client_phone === clientPhone
+      ) || [];
+      setClientBookings(bookings);
+    } catch (error) {
+      console.error('Error loading client bookings:', error);
+    } finally {
+      setIsLoadingBookings(false);
     }
   };
 
@@ -613,8 +635,10 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         setIsDetailDialogOpen(open);
         if (open && selectedClient) {
           setEditClient(selectedClient);
+          loadClientBookings(selectedClient.id);
         } else {
           setEditClient(null);
+          setClientBookings([]);
         }
       }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -781,8 +805,12 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
               </TabsContent>
 
               <TabsContent value="orders" className="space-y-3 mt-4">
-                <div className="space-y-3">
-                  {/* Здесь будет список заказов клиента */}
+                {isLoadingBookings ? (
+                  <div className="text-center py-12">
+                    <Icon name="Loader2" size={48} className="mx-auto mb-4 opacity-50 animate-spin" />
+                    <p className="text-muted-foreground">Загрузка заказов...</p>
+                  </div>
+                ) : clientBookings.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <Icon name="Package" size={48} className="mx-auto mb-4 opacity-50" />
                     <p className="mb-2">У клиента пока нет заказов</p>
@@ -797,7 +825,54 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                       Создать первый заказ
                     </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    {clientBookings.map((booking) => (
+                      <Card key={booking.id} className="hover:border-primary/50 transition-all cursor-pointer">
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Icon name="Car" size={16} className="text-primary" />
+                                <span className="font-medium">{booking.vehicle_model || 'Автомобиль'}</span>
+                                {booking.vehicle_license_plate && (
+                                  <Badge variant="outline" className="text-xs">{booking.vehicle_license_plate}</Badge>
+                                )}
+                              </div>
+                              <div className="text-sm text-muted-foreground space-y-1">
+                                {booking.start_date && (
+                                  <div className="flex items-center gap-2">
+                                    <Icon name="Calendar" size={14} />
+                                    <span>{new Date(booking.start_date).toLocaleDateString('ru-RU')} - {booking.end_date ? new Date(booking.end_date).toLocaleDateString('ru-RU') : '?'}</span>
+                                  </div>
+                                )}
+                                {booking.pickup_location && (
+                                  <div className="flex items-center gap-2">
+                                    <Icon name="MapPin" size={14} />
+                                    <span>{booking.pickup_location} → {booking.dropoff_location || '?'}</span>
+                                  </div>
+                                )}
+                                {booking.total_price && (
+                                  <div className="flex items-center gap-2">
+                                    <Icon name="Wallet" size={14} />
+                                    <span className="font-medium">{booking.total_price.toLocaleString()} ₽</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <Badge className={cn(
+                              booking.status === 'Бронь' && 'bg-blue-500',
+                              booking.status === 'Услуга' && 'bg-purple-500',
+                              booking.status === 'Черновик' && 'bg-gray-500'
+                            )}>
+                              {booking.status}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
             </>
