@@ -131,6 +131,14 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           client_birth_date: foundClient.birth_date || '',
           client_telegram: foundClient.telegram || '',
           client_whatsapp: foundClient.whatsapp || '',
+          client_passport_series: foundClient.passport_series || '',
+          client_passport_number: foundClient.passport_number || '',
+          client_passport_issued_by: foundClient.passport_issued_by || '',
+          client_passport_issued_date: foundClient.passport_issued_date || '',
+          client_passport_registration: foundClient.address || '',
+          client_driver_license_series: foundClient.driver_license_series || '',
+          client_driver_license_number: foundClient.driver_license_number || '',
+          client_driver_license_issued_date: foundClient.driver_license_issued_date || '',
         }));
         toast({
           title: '✅ Клиент найден',
@@ -165,6 +173,14 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           client_birth_date: foundClient.birth_date || '',
           client_telegram: foundClient.telegram || '',
           client_whatsapp: foundClient.whatsapp || '',
+          client_passport_series: foundClient.passport_series || '',
+          client_passport_number: foundClient.passport_number || '',
+          client_passport_issued_by: foundClient.passport_issued_by || '',
+          client_passport_issued_date: foundClient.passport_issued_date || '',
+          client_passport_registration: foundClient.address || '',
+          client_driver_license_series: foundClient.driver_license_series || '',
+          client_driver_license_number: foundClient.driver_license_number || '',
+          client_driver_license_issued_date: foundClient.driver_license_issued_date || '',
         }));
         toast({
           title: '✅ Клиент найден',
@@ -735,13 +751,6 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                     type="date"
                     value={bookingData.client_driver_license_issued_date}
                     onChange={(e) => updateData('client_driver_license_issued_date', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Кем выдано *</Label>
-                  <Input
-                    value={bookingData.client_driver_license_issued_by}
-                    onChange={(e) => updateData('client_driver_license_issued_by', e.target.value)}
                   />
                 </div>
               </div>

@@ -25,6 +25,9 @@ interface Client {
   address?: string;
   birth_date?: string;
   driver_license?: string;
+  driver_license_series?: string;
+  driver_license_number?: string;
+  driver_license_issued_date?: string;
   license_issued_date?: string;
   notes?: string;
   created_at: string;
@@ -61,6 +64,9 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     address: '',
     birth_date: '',
     driver_license: '',
+    driver_license_series: '',
+    driver_license_number: '',
+    driver_license_issued_date: '',
     license_issued_date: '',
     notes: ''
   });
@@ -192,6 +198,9 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         address: '',
         birth_date: '',
         driver_license: '',
+        driver_license_series: '',
+        driver_license_number: '',
+        driver_license_issued_date: '',
         license_issued_date: '',
         notes: ''
       });
@@ -544,22 +553,34 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="driver_license">Номер ВУ</Label>
+                    <Label htmlFor="driver_license_series">Серия ВУ</Label>
                     <Input
-                      id="driver_license"
-                      placeholder="1234 567890"
-                      value={newClient.driver_license}
-                      onChange={(e) => setNewClient({ ...newClient, driver_license: e.target.value })}
+                      id="driver_license_series"
+                      placeholder="1234"
+                      maxLength={4}
+                      value={newClient.driver_license_series}
+                      onChange={(e) => setNewClient({ ...newClient, driver_license_series: e.target.value })}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="license_issued_date">Дата выдачи</Label>
+                    <Label htmlFor="driver_license_number">Номер ВУ</Label>
                     <Input
-                      id="license_issued_date"
+                      id="driver_license_number"
+                      placeholder="567890"
+                      maxLength={6}
+                      value={newClient.driver_license_number}
+                      onChange={(e) => setNewClient({ ...newClient, driver_license_number: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="driver_license_issued_date">Дата выдачи</Label>
+                    <Input
+                      id="driver_license_issued_date"
                       type="date"
-                      value={newClient.license_issued_date}
-                      onChange={(e) => setNewClient({ ...newClient, license_issued_date: e.target.value })}
+                      value={newClient.driver_license_issued_date}
+                      onChange={(e) => setNewClient({ ...newClient, driver_license_issued_date: e.target.value })}
                     />
                   </div>
                 </div>
@@ -734,10 +755,20 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Водительское удостоверение</Label>
+                    <Label>ВУ (серия)</Label>
                     <Input
-                      value={editClient.driver_license || ''}
-                      onChange={(e) => setEditClient({ ...editClient, driver_license: e.target.value })}
+                      value={editClient.driver_license_series || ''}
+                      onChange={(e) => setEditClient({ ...editClient, driver_license_series: e.target.value })}
+                      maxLength={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>ВУ (номер)</Label>
+                    <Input
+                      value={editClient.driver_license_number || ''}
+                      onChange={(e) => setEditClient({ ...editClient, driver_license_number: e.target.value })}
+                      maxLength={6}
                     />
                   </div>
 
@@ -745,8 +776,8 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                     <Label>Дата выдачи ВУ</Label>
                     <Input
                       type="date"
-                      value={editClient.license_issued_date || ''}
-                      onChange={(e) => setEditClient({ ...editClient, license_issued_date: e.target.value })}
+                      value={editClient.driver_license_issued_date || ''}
+                      onChange={(e) => setEditClient({ ...editClient, driver_license_issued_date: e.target.value })}
                     />
                   </div>
 

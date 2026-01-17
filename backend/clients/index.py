@@ -31,7 +31,9 @@ def handler(event: dict, context) -> dict:
             cursor.execute("""
                 SELECT id, name, phone, email, company, telegram, whatsapp, 
                        city, balance, total_spent, orders_count, rating, 
-                       source, is_blacklist, notes, created_at, birth_date
+                       source, is_blacklist, notes, created_at, birth_date,
+                       passport_series, passport_number, passport_issued_by, passport_issued_date,
+                       address, driver_license_series, driver_license_number, driver_license_issued_date
                 FROM t_p81623955_crm_system_creation.clients
                 ORDER BY created_at DESC
             """)
@@ -55,7 +57,15 @@ def handler(event: dict, context) -> dict:
                     'is_blacklist': row[13] or False,
                     'notes': row[14],
                     'created_at': row[15].isoformat() if row[15] else None,
-                    'birth_date': row[16].isoformat() if row[16] else None
+                    'birth_date': row[16].isoformat() if row[16] else None,
+                    'passport_series': row[17],
+                    'passport_number': row[18],
+                    'passport_issued_by': row[19],
+                    'passport_issued_date': row[20].isoformat() if row[20] else None,
+                    'address': row[21],
+                    'driver_license_series': row[22],
+                    'driver_license_number': row[23],
+                    'driver_license_issued_date': row[24].isoformat() if row[24] else None
                 })
             
             cursor.close()
@@ -76,8 +86,10 @@ def handler(event: dict, context) -> dict:
             
             cursor.execute("""
                 INSERT INTO t_p81623955_crm_system_creation.clients 
-                (name, phone, email, company, telegram, whatsapp, city, notes, source, birth_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (name, phone, email, company, telegram, whatsapp, city, notes, source, birth_date,
+                 passport_series, passport_number, passport_issued_by, passport_issued_date,
+                 address, driver_license_series, driver_license_number, driver_license_issued_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, name, phone, email, company, telegram, whatsapp, 
                           city, balance, created_at, birth_date
             """, (
@@ -90,7 +102,15 @@ def handler(event: dict, context) -> dict:
                 body.get('city'),
                 body.get('notes'),
                 body.get('source', 'manual'),
-                body.get('birth_date')
+                body.get('birth_date'),
+                body.get('passport_series'),
+                body.get('passport_number'),
+                body.get('passport_issued_by'),
+                body.get('passport_issued_date'),
+                body.get('address'),
+                body.get('driver_license_series'),
+                body.get('driver_license_number'),
+                body.get('driver_license_issued_date')
             ))
             
             row = cursor.fetchone()
@@ -129,7 +149,10 @@ def handler(event: dict, context) -> dict:
                 UPDATE t_p81623955_crm_system_creation.clients
                 SET name = %s, phone = %s, email = %s, company = %s,
                     telegram = %s, whatsapp = %s, city = %s, notes = %s,
-                    is_blacklist = %s, birth_date = %s, updated_at = CURRENT_TIMESTAMP
+                    is_blacklist = %s, birth_date = %s,
+                    passport_series = %s, passport_number = %s, passport_issued_by = %s, passport_issued_date = %s,
+                    address = %s, driver_license_series = %s, driver_license_number = %s, driver_license_issued_date = %s,
+                    updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                 RETURNING id, name, phone, email, company, telegram, whatsapp,
                           city, balance, is_blacklist, updated_at, birth_date
@@ -144,6 +167,14 @@ def handler(event: dict, context) -> dict:
                 body.get('notes'),
                 body.get('is_blacklist', False),
                 body.get('birth_date'),
+                body.get('passport_series'),
+                body.get('passport_number'),
+                body.get('passport_issued_by'),
+                body.get('passport_issued_date'),
+                body.get('address'),
+                body.get('driver_license_series'),
+                body.get('driver_license_number'),
+                body.get('driver_license_issued_date'),
                 client_id
             ))
             
