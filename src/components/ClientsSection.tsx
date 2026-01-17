@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
+import ClientAnalytics from '@/components/ClientAnalytics';
 
 interface Client {
   id: number;
@@ -58,8 +60,8 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     notes: ''
   });
 
-  const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
-  const [licensePhoto, setLicensePhoto] = useState<string | null>(null);
+  const [passportPhotos, setPassportPhotos] = useState<string[]>([]);
+  const [licensePhotos, setLicensePhotos] = useState<string[]>([]);
 
   useEffect(() => {
     loadClients();
@@ -83,18 +85,22 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     }
   };
 
-  const handleFileUpload = (file: File, type: 'passport' | 'license') => {
+  const handleFileUpload = (file: File, type: 'passport' | 'license', index: number) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
       if (type === 'passport') {
-        setPassportPhoto(base64);
+        const updated = [...passportPhotos];
+        updated[index] = base64;
+        setPassportPhotos(updated);
       } else {
-        setLicensePhoto(base64);
+        const updated = [...licensePhotos];
+        updated[index] = base64;
+        setLicensePhotos(updated);
       }
       toast({
         title: "Фото загружено",
-        description: `Фото ${type === 'passport' ? 'паспорта' : 'водительского удостоверения'} успешно загружено`,
+        description: `Фото ${type === 'passport' ? 'паспорта' : 'водительского удостоверения'} ${index + 1} успешно загружено`,
       });
     };
     reader.readAsDataURL(file);
@@ -136,8 +142,8 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         license_issued_date: '',
         notes: ''
       });
-      setPassportPhoto(null);
-      setLicensePhoto(null);
+      setPassportPhotos([]);
+      setLicensePhotos([]);
 
       toast({
         title: "Клиент добавлен",
@@ -171,7 +177,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                 Клиенты
               </CardTitle>
               <CardDescription>
-                База клиентов и их контактная информация
+                База клиентов и аналитика продаж
               </CardDescription>
             </div>
             <Button 
@@ -184,18 +190,26 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
           </div>
         </CardHeader>
 
-        <CardContent>
-          <div className="mb-6">
-            <div className="relative">
-              <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Поиск по имени или телефону..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+        <Tabs defaultValue="clients" className="w-full">
+          <TabsList className="mx-6">
+            <TabsTrigger value="clients">База клиентов</TabsTrigger>
+            <TabsTrigger value="analytics">Аналитика</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="clients" className="mt-0">
+
+            <CardContent>
+              <div className="mb-6">
+                <div className="relative">
+                  <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по имени или телефону..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
 
           {filteredClients.length === 0 ? (
             <Card className="border-dashed">
@@ -276,7 +290,13 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
               ))}
             </div>
           )}
-        </CardContent>
+            </CardContent>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-0 px-6 pb-6">
+            <ClientAnalytics clients={clients} />
+          </TabsContent>
+        </Tabs>
       </Card>
 
       {/* Диалог добавления клиента */}
@@ -392,35 +412,41 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="passport_photo">Фото паспорта</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="passport_photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, 'passport');
-                      }}
-                    />
-                    {passportPhoto && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(passportPhoto, '_blank')}
-                      >
-                        <Icon name="Eye" size={16} className="mr-1" />
-                        Просмотр
-                      </Button>
-                    )}
+                <div className="space-y-4">
+                  <Label>Фото паспорта (до 2 файлов)</Label>
+                  
+                  <div className="space-y-3">
+                    {[0, 1].map((index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex gap-2 items-center">
+                          <Label className="text-sm text-muted-foreground min-w-[80px]">Файл {index + 1}:</Label>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(file, 'passport', index);
+                            }}
+                          />
+                          {passportPhotos[index] && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(passportPhotos[index], '_blank')}
+                            >
+                              <Icon name="Eye" size={16} />
+                            </Button>
+                          )}
+                        </div>
+                        {passportPhotos[index] && (
+                          <div className="ml-[92px]">
+                            <img src={passportPhotos[index]} alt={`Паспорт ${index + 1}`} className="max-h-32 rounded border" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {passportPhoto && (
-                    <div className="mt-2">
-                      <img src={passportPhoto} alt="Паспорт" className="max-h-32 rounded border" />
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -452,35 +478,41 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="license_photo">Фото водительского удостоверения</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="license_photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, 'license');
-                      }}
-                    />
-                    {licensePhoto && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(licensePhoto, '_blank')}
-                      >
-                        <Icon name="Eye" size={16} className="mr-1" />
-                        Просмотр
-                      </Button>
-                    )}
+                <div className="space-y-4">
+                  <Label>Фото водительского удостоверения (до 2 файлов)</Label>
+                  
+                  <div className="space-y-3">
+                    {[0, 1].map((index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex gap-2 items-center">
+                          <Label className="text-sm text-muted-foreground min-w-[80px]">Файл {index + 1}:</Label>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(file, 'license', index);
+                            }}
+                          />
+                          {licensePhotos[index] && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(licensePhotos[index], '_blank')}
+                            >
+                              <Icon name="Eye" size={16} />
+                            </Button>
+                          )}
+                        </div>
+                        {licensePhotos[index] && (
+                          <div className="ml-[92px]">
+                            <img src={licensePhotos[index]} alt={`ВУ ${index + 1}`} className="max-h-32 rounded border" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {licensePhoto && (
-                    <div className="mt-2">
-                      <img src={licensePhoto} alt="Водительское удостоверение" className="max-h-32 rounded border" />
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

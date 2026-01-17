@@ -90,21 +90,26 @@ export const VehicleDetailDialog = ({
                   </Button>
                   <Button size="sm" className="bg-gradient-to-r from-primary to-secondary" onClick={async () => {
                     try {
+                      const vehicleData = { ...editedVehicle, id: vehicle.id };
                       const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(editedVehicle)
+                        body: JSON.stringify(vehicleData)
                       });
-                      if (response.ok) {
-                        updateVehicle(editedVehicle.id, editedVehicle);
-                        toast({ title: "✅ Сохранено", description: "Данные автомобиля обновлены мгновенно!" });
-                        setIsEditing(false);
-                        onOpenChange(false);
-                      } else {
-                        throw new Error('Failed to update vehicle');
+                      
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to update vehicle');
                       }
-                    } catch (error) {
-                      toast({ title: "Ошибка", description: "Не удалось сохранить изменения", variant: "destructive" });
+                      
+                      const data = await response.json();
+                      updateVehicle(vehicle.id, data.vehicle);
+                      toast({ title: "✅ Сохранено", description: "Данные автомобиля обновлены!" });
+                      setIsEditing(false);
+                      onOpenChange(false);
+                    } catch (error: any) {
+                      console.error('Update error:', error);
+                      toast({ title: "Ошибка", description: error.message || "Не удалось сохранить изменения", variant: "destructive" });
                     }
                   }}>
                     <Icon name="Save" size={14} className="mr-1 sm:mr-2" />
