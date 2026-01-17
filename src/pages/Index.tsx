@@ -770,43 +770,10 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">На сумму 792 000 руб (13)</div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">53 200</Badge>
-                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Быков Александр → Санкт-Петербург</div>
-                          <div className="text-xs text-muted-foreground">22.01.2026 12:00 — Доставка</div>
-                        </div>
-                      </div>
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-primary/50 transition-all"
-                        onClick={() => {
-                          setSelectedBooking({
-                            id: '38ac8899',
-                            client: 'Шлейгер Дмитрий',
-                            phone: '+7 (913) 531 12 12',
-                            car: 'О304СВ193',
-                            startDate: '19.01.2026 15:00',
-                            endDate: '21.01.2026 15:00',
-                            notes: 'Переезд семьи из Москвы в Краснодар'
-                          });
-                          setIsBookingDetailOpen(true);
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">42 000</Badge>
-                          <Badge variant="secondary" className="text-xs">О304СВ193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Шлейгер Дмитрий → Москва</div>
-                          <div className="text-xs text-muted-foreground">19.01.2026 15:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">21.01.2026 15:00 — Офис</div>
-                        </div>
-                      </div>
+                    <div className="text-sm text-muted-foreground mb-4">Активных броней нет</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="CalendarOff" size={40} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Создайте новую бронь</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -825,37 +792,10 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">На сумму -60 500 руб (6)</div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-green-500/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setActiveSection('fleet'); }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-green-600 text-white">88 000</Badge>
-                          <Badge variant="secondary" className="text-xs">А218ЕТ550</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Трушкин Илья → Москва</div>
-                          <div className="text-xs text-muted-foreground">07.01.2026 20:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">18.01.2026 20:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 relative cursor-pointer hover:border-green-500/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setActiveSection('fleet'); }}
-                      >
-                        <Badge className="absolute top-2 right-2 bg-red-600 text-white text-xs">Просрочка!</Badge>
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-green-600 text-white">48 000</Badge>
-                          <Badge variant="secondary" className="text-xs">Р828ТУ193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Замятин Дмитрий → Москва</div>
-                          <div className="text-xs text-muted-foreground">13.01.2026 20:00 — Доставка</div>
-                          <div className="text-xs text-muted-foreground">18.01.2026 20:00 — Доставка</div>
-                        </div>
-                      </div>
+                    <div className="text-sm text-muted-foreground mb-4">Авто в аренде нет</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="CarOff" size={40} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Все автомобили свободны</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -876,30 +816,10 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">На сумму 21 592 руб (2)</div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-cyan-600 text-white">7 100</Badge>
-                          <Badge variant="secondary" className="text-xs">В219УТ797</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Великий Кирилл → Москва</div>
-                          <div className="text-xs text-muted-foreground">01.07.2025 10:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">13.07.2025 10:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-cyan-600 text-white">88 000</Badge>
-                          <Badge variant="secondary" className="text-xs">К198ВЕ123</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Михайлов Вячеслав → Москва</div>
-                          <div className="text-xs text-muted-foreground">29.05.2024 20:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">11.06.2024 20:00 — Офис</div>
-                        </div>
-                      </div>
+                    <div className="text-sm text-muted-foreground mb-4">Аренд не завершено</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="CheckCircle2" size={40} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Все аренды активны</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -918,54 +838,10 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">218 000</Badge>
-                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                            <Icon name="AlertCircle" size={12} />
-                            А194ЕЕ193
-                          </Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Яндиев Иван → Краснодар</div>
-                          <div className="text-xs text-muted-foreground">12.02.2026 10:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">15.01.2026 20:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">101 700</Badge>
-                          <Badge variant="secondary" className="text-xs">P828TY193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Мозолев Ирина → Москва</div>
-                          <div className="text-xs text-muted-foreground">12.06.2026 15:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">27.06.2026 15:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">96 900</Badge>
-                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Самуилов Алексей → Санкт-Петербург</div>
-                          <div className="text-xs text-muted-foreground">09.07.2026 10:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">26.07.2026 10:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-600 text-white">96 300</Badge>
-                          <Badge variant="secondary" className="text-xs">О304СВ193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Аменицко Артур → Москва</div>
-                          <div className="text-xs text-muted-foreground">20.08.2026 10:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">31.08.2026 10:00 — Офис</div>
-                        </div>
-                      </div>
+                    <div className="text-sm text-muted-foreground mb-4">Нет данных</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="BarChart3" size={40} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Создайте первую бронь</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -984,7 +860,12 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                    <div className="text-sm text-muted-foreground mb-4">Доставок нет</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="Truck" size={40} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Активных доставок нет</p>
+                    </div>
+                    <div className="space-y-3 max-h-80 overflow-y-auto hidden">
                       <div className="p-3 rounded-lg bg-background/80 border border-border/50">
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-green-600 text-white">47 000</Badge>

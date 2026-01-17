@@ -224,6 +224,78 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label>
+                    <Icon name="MapPin" size={16} className="inline mr-2" />
+                    Место выдачи *
+                  </Label>
+                  <Select 
+                    value={bookingData.pickup_location_type || ''} 
+                    onValueChange={(value) => updateData('pickup_location_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите место" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="office">Офис</SelectItem>
+                      <SelectItem value="hotel">Отель</SelectItem>
+                      <SelectItem value="airport">Аэропорт</SelectItem>
+                      <SelectItem value="custom">Свой адрес</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {(bookingData.pickup_location_type === 'hotel' || 
+                    bookingData.pickup_location_type === 'airport' || 
+                    bookingData.pickup_location_type === 'custom') && (
+                    <Input
+                      placeholder={
+                        bookingData.pickup_location_type === 'hotel' ? 'Название отеля' :
+                        bookingData.pickup_location_type === 'airport' ? 'Название аэропорта' :
+                        'Адрес'
+                      }
+                      value={bookingData.pickup_location || ''}
+                      onChange={(e) => updateData('pickup_location', e.target.value)}
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    <Icon name="MapPinOff" size={16} className="inline mr-2" />
+                    Место возврата *
+                  </Label>
+                  <Select 
+                    value={bookingData.dropoff_location_type || ''} 
+                    onValueChange={(value) => updateData('dropoff_location_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите место" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="office">Офис</SelectItem>
+                      <SelectItem value="hotel">Отель</SelectItem>
+                      <SelectItem value="airport">Аэропорт</SelectItem>
+                      <SelectItem value="custom">Свой адрес</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {(bookingData.dropoff_location_type === 'hotel' || 
+                    bookingData.dropoff_location_type === 'airport' || 
+                    bookingData.dropoff_location_type === 'custom') && (
+                    <Input
+                      placeholder={
+                        bookingData.dropoff_location_type === 'hotel' ? 'Название отеля' :
+                        bookingData.dropoff_location_type === 'airport' ? 'Название аэропорта' :
+                        'Адрес'
+                      }
+                      value={bookingData.dropoff_location || ''}
+                      onChange={(e) => updateData('dropoff_location', e.target.value)}
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="planned_km">
                     <Icon name="Gauge" size={16} className="inline mr-2" />
                     Пробег поездки, км *
