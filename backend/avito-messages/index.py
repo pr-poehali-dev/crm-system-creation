@@ -59,7 +59,8 @@ def handler(event: dict, context) -> dict:
             data={
                 'grant_type': 'client_credentials',
                 'client_id': client_id,
-                'client_secret': client_secret
+                'client_secret': client_secret,
+                'scope': 'messenger:read'
             },
             timeout=10
         )
@@ -92,6 +93,7 @@ def handler(event: dict, context) -> dict:
     
     # Загружаем сообщения из Avito Messenger API
     try:
+        print(f"Fetching messages from Avito for user_id={user_id}")
         messages_response = requests.get(
             f'https://api.avito.ru/messenger/v2/accounts/{user_id}/chats',
             headers={
@@ -102,6 +104,8 @@ def handler(event: dict, context) -> dict:
             },
             timeout=10
         )
+        
+        print(f"Messages response: status={messages_response.status_code}, body={messages_response.text[:200]}")
         
         if messages_response.status_code != 200:
             return {
