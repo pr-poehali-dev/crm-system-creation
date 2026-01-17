@@ -15,6 +15,7 @@ import VehicleDetailDialog from '@/components/VehicleDetailDialog';
 import MaintenanceStatusDialog from '@/components/MaintenanceStatusDialog';
 import BookingDetailDialog from '@/components/BookingDetailDialog';
 import VehicleHandoverDialog from '@/components/VehicleHandoverDialog';
+import BookingWizard from '@/components/BookingWizard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ const Index = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isBookingDetailOpen, setIsBookingDetailOpen] = useState(false);
   const [isHandoverOpen, setIsHandoverOpen] = useState(false);
+  const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
   const [clientDataFromLead, setClientDataFromLead] = useState<{ name: string; phone: string } | null>(null);
   const [newRequest, setNewRequest] = useState({
     client: '',
@@ -269,11 +271,12 @@ const Index = () => {
                 <Icon name="LogOut" size={18} className="mr-2" />
                 Выйти
               </Button>
-              <Dialog open={isNewRequestOpen} onOpenChange={setIsNewRequestOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-                    <Icon name="Plus" size={18} className="mr-2" />
-                    Новая заявка
+              <Button 
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                onClick={() => setIsBookingWizardOpen(true)}
+              >
+                <Icon name="Plus" size={18} className="mr-2" />
+                Новая заявка
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1597,6 +1600,14 @@ const Index = () => {
         onOpenChange={setIsHandoverOpen}
         vehicle={selectedVehicle}
         booking={selectedBooking}
+      />
+
+      <BookingWizard
+        open={isBookingWizardOpen}
+        onOpenChange={setIsBookingWizardOpen}
+        vehicle={selectedVehicle}
+        startDate={newRequest.startDate}
+        endDate={newRequest.endDate}
       />
     </div>
   );

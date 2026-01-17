@@ -1,0 +1,18 @@
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_type VARCHAR(50) DEFAULT 'rent';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_email VARCHAR(255);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_birth_date DATE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_passport_series VARCHAR(10);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_passport_number VARCHAR(20);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_passport_issued_by TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_passport_issued_date DATE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_passport_registration TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_driver_license_series VARCHAR(10);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_driver_license_number VARCHAR(20);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_driver_license_issued_date DATE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_driver_license_expiry_date DATE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_driver_license_issued_by TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_is_foreign BOOLEAN DEFAULT false;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS route_type VARCHAR(50);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS planned_km_total INTEGER;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS actual_km_total INTEGER;
