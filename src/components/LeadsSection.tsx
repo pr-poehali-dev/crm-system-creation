@@ -195,23 +195,13 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
                 Воронка продаж и работа с обращениями из всех каналов
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                onClick={loadAvitoMessages}
-                disabled={isLoadingLeads}
-              >
-                <Icon name="Download" size={18} className="mr-2" />
-                {isLoadingLeads ? 'Загрузка...' : 'Загрузить из Avito'}
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-primary to-secondary"
-                onClick={() => setIsAddLeadOpen(true)}
-              >
-                <Icon name="Plus" size={18} className="mr-2" />
-                Добавить диалог вручную
-              </Button>
-            </div>
+            <Button 
+              className="bg-gradient-to-r from-primary to-secondary"
+              onClick={() => setIsAddLeadOpen(true)}
+            >
+              <Icon name="Plus" size={18} className="mr-2" />
+              Добавить диалог с Avito
+            </Button>
           </div>
         </CardHeader>
 
@@ -286,20 +276,13 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
                       <p className="text-sm text-muted-foreground mb-4">
                         Загрузите диалоги из Avito или добавьте лид вручную
                       </p>
-                      <div className="flex gap-2 justify-center">
-                        <Button 
-                          variant="outline"
-                          onClick={loadAvitoMessages}
-                          disabled={isLoadingLeads}
-                        >
-                          <Icon name="Download" size={18} className="mr-2" />
-                          Загрузить из Avito
-                        </Button>
-                        <Button className="bg-gradient-to-r from-primary to-secondary">
-                          <Icon name="Plus" size={18} className="mr-2" />
-                          Добавить лид
-                        </Button>
-                      </div>
+                      <Button 
+                        className="bg-gradient-to-r from-primary to-secondary"
+                        onClick={() => setIsAddLeadOpen(true)}
+                      >
+                        <Icon name="Plus" size={18} className="mr-2" />
+                        Добавить диалог с Avito
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -637,12 +620,16 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
               <CardContent className="pt-4">
                 <div className="flex items-start gap-3">
                   <Icon name="Info" size={20} className="text-info mt-0.5" />
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Инструкция</p>
-                    <p className="text-muted-foreground">
-                      Скопируйте информацию из диалога с клиентом в Avito и вставьте в форму.
-                      После добавления сможете обработать обращение и перевести в клиенты.
-                    </p>
+                  <div className="space-y-2 text-sm">
+                    <p className="font-medium">Как добавить диалог с Avito:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                      <li>Откройте <a href="https://www.avito.ru/profile/messenger" target="_blank" rel="noopener noreferrer" className="text-primary underline">Мессенджер Avito</a></li>
+                      <li>Выберите нужный диалог с клиентом</li>
+                      <li>Скопируйте имя клиента, его сообщение и название авто</li>
+                      <li>Вставьте информацию в форму выше</li>
+                      <li>Нажмите "Добавить лид" — диалог появится в CRM</li>
+                      <li>Обработайте лид и переведите в клиента кнопкой "Перевести в клиента"</li>
+                    </ol>
                   </div>
                 </div>
               </CardContent>
