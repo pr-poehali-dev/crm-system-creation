@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Get all clients",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "clients": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create new client",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Test Client",
+        "phone": "+79991234567",
+        "email": "test@example.com",
+        "company": "Test Company",
+        "city": "Moscow"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "client": {
+          "id": "number",
+          "name": "Test Client",
+          "phone": "+79991234567"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
