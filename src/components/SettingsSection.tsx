@@ -1,0 +1,258 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import Icon from '@/components/ui/icon';
+
+export const SettingsSection = () => {
+  const employees = [
+    { id: 1, name: 'Иванов Иван', position: 'Мастер', phone: '+7 (999) 111-11-11', email: 'ivanov@rf.ru', balance: 25000, active: true },
+    { id: 2, name: 'Петрова Анна', position: 'Менеджер', phone: '+7 (999) 222-22-22', email: 'petrova@rf.ru', balance: 35000, active: true },
+    { id: 3, name: 'Сидоров Петр', position: 'Детейлер', phone: '+7 (999) 333-33-33', email: 'sidorov@rf.ru', balance: 28000, active: true },
+    { id: 4, name: 'Козлова Мария', position: 'Администратор', phone: '+7 (999) 444-44-44', email: 'kozlova@rf.ru', balance: 30000, active: false },
+  ];
+
+  return (
+    <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Icon name="Settings" size={24} className="text-primary" />
+          Настройки системы
+        </CardTitle>
+        <CardDescription>Управление параметрами CRM и сотрудниками</CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <Tabs defaultValue="company" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="company">Компания</TabsTrigger>
+            <TabsTrigger value="employees">Сотрудники</TabsTrigger>
+            <TabsTrigger value="notifications">Уведомления</TabsTrigger>
+            <TabsTrigger value="integrations">Интеграции</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="company" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Название компании</Label>
+                  <Input defaultValue="Русская Фантазия" />
+                </div>
+                <div className="space-y-2">
+                  <Label>ИНН</Label>
+                  <Input defaultValue="7701234567" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Телефон</Label>
+                  <Input defaultValue="+7 (495) 123-45-67" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input defaultValue="info@russkaya-fantaziya.ru" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Адрес</Label>
+                <Input defaultValue="г. Москва, ул. Тверская, д. 1" />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Рабочие часы</div>
+                  <div className="text-sm text-muted-foreground">Отображается клиентам</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium">Пн-Вс: 9:00 - 21:00</div>
+                  <Button variant="link" size="sm">Изменить</Button>
+                </div>
+              </div>
+
+              <Button className="w-full bg-gradient-to-r from-primary to-secondary">
+                <Icon name="Save" size={18} className="mr-2" />
+                Сохранить изменения
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="employees" className="space-y-4 mt-6">
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-muted-foreground">Всего сотрудников: {employees.length}</div>
+              <Button className="bg-gradient-to-r from-primary to-secondary">
+                <Icon name="UserPlus" size={18} className="mr-2" />
+                Добавить сотрудника
+              </Button>
+            </div>
+
+            {employees.map((employee) => (
+              <div key={employee.id} className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                      {employee.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div className="flex-1 grid grid-cols-4 gap-4">
+                      <div>
+                        <div className="font-medium">{employee.name}</div>
+                        <div className="text-sm text-muted-foreground">{employee.position}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Телефон</div>
+                        <div className="font-medium text-sm">{employee.phone}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Email</div>
+                        <div className="font-medium text-sm">{employee.email}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Баланс</div>
+                        <div className="font-medium text-primary">₽{employee.balance.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={employee.active} />
+                    <Button variant="ghost" size="icon">
+                      <Icon name="MoreVertical" size={20} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="font-medium">Email уведомления</div>
+                  <div className="text-sm text-muted-foreground">Получать уведомления о новых заявках</div>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="font-medium">Telegram уведомления</div>
+                  <div className="text-sm text-muted-foreground">Отправлять уведомления в Telegram бот</div>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="font-medium">WhatsApp уведомления</div>
+                  <div className="text-sm text-muted-foreground">Отправлять клиентам напоминания в WhatsApp</div>
+                </div>
+                <Switch />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="font-medium">SMS уведомления</div>
+                  <div className="text-sm text-muted-foreground">Отправлять SMS о статусе заявки</div>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>Email для уведомлений</Label>
+                <Input type="email" defaultValue="notifications@russkaya-fantaziya.ru" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Telegram Bot Token</Label>
+                <Input type="password" defaultValue="••••••••••••••••" />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-4 mt-6">
+            <div className="grid gap-4">
+              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Icon name="Calendar" size={24} className="text-primary" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Google Calendar</div>
+                      <div className="text-sm text-muted-foreground">Синхронизация заявок с календарём</div>
+                    </div>
+                  </div>
+                  <Button variant="outline">Подключить</Button>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-success/20 flex items-center justify-center">
+                      <Icon name="MessageSquare" size={24} className="text-success" />
+                    </div>
+                    <div>
+                      <div className="font-medium">WhatsApp Business API</div>
+                      <div className="text-sm text-muted-foreground">Автоматические сообщения клиентам</div>
+                    </div>
+                  </div>
+                  <Button variant="outline">Подключить</Button>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-sidebar/30 border border-success/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-info/20 flex items-center justify-center">
+                      <Icon name="Send" size={24} className="text-info" />
+                    </div>
+                    <div>
+                      <div className="font-medium flex items-center gap-2">
+                        Telegram Bot
+                        <span className="px-2 py-0.5 text-xs bg-success/20 text-success rounded">Подключено</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">Уведомления о заявках в Telegram</div>
+                    </div>
+                  </div>
+                  <Button variant="outline">Настроить</Button>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-warning/20 flex items-center justify-center">
+                      <Icon name="CreditCard" size={24} className="text-warning" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Yookassa / Stripe</div>
+                      <div className="text-sm text-muted-foreground">Приём онлайн платежей</div>
+                    </div>
+                  </div>
+                  <Button variant="outline">Подключить</Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SettingsSection;

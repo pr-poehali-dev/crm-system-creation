@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ServicesSection from '@/components/ServicesSection';
+import FinanceSection from '@/components/FinanceSection';
+import SettingsSection from '@/components/SettingsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,7 @@ import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
+  const { toast } = useToast();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<number | null>(null);
@@ -94,6 +97,7 @@ const Index = () => {
         {[
           { id: 'dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
           { id: 'requests', icon: 'ClipboardList', label: 'Заявки' },
+          { id: 'clients', icon: 'Users', label: 'Клиенты' },
           { id: 'fleet', icon: 'Car', label: 'Автопарк' },
           { id: 'services', icon: 'Wrench', label: 'Услуги' },
           { id: 'finance', icon: 'Wallet', label: 'Финансы' },
@@ -131,6 +135,10 @@ const Index = () => {
                 <Icon name="Calendar" size={16} className="mr-2" />
                 17 января 2026
               </Badge>
+              <Button variant="outline">
+                <Icon name="Download" size={18} className="mr-2" />
+                Экспорт
+              </Button>
               <Dialog open={isNewRequestOpen} onOpenChange={setIsNewRequestOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
@@ -270,7 +278,16 @@ const Index = () => {
 
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsNewRequestOpen(false)}>Отмена</Button>
-                    <Button className="bg-gradient-to-r from-primary to-secondary" onClick={() => setIsNewRequestOpen(false)}>
+                    <Button 
+                      className="bg-gradient-to-r from-primary to-secondary" 
+                      onClick={() => {
+                        setIsNewRequestOpen(false);
+                        toast({
+                          title: "Заявка создана",
+                          description: `Новая заявка на сумму ₽${calculatePrice().toLocaleString()} успешно создана`,
+                        });
+                      }}
+                    >
                       Создать заявку
                     </Button>
                   </DialogFooter>
@@ -373,19 +390,28 @@ const Index = () => {
           {activeSection === 'requests' && (
             <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="ClipboardList" size={24} className="text-primary" />
-                    Управление заявками
-                  </CardTitle>
-                  <Tabs defaultValue="all" className="w-auto">
-                    <TabsList>
-                      <TabsTrigger value="all">Все</TabsTrigger>
-                      <TabsTrigger value="new">Новые</TabsTrigger>
-                      <TabsTrigger value="progress">В работе</TabsTrigger>
-                      <TabsTrigger value="completed">Завершённые</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="ClipboardList" size={24} className="text-primary" />
+                      Управление заявками
+                    </CardTitle>
+                    <Tabs defaultValue="all" className="w-auto">
+                      <TabsList>
+                        <TabsTrigger value="all">Все</TabsTrigger>
+                        <TabsTrigger value="new">Новые</TabsTrigger>
+                        <TabsTrigger value="progress">В работе</TabsTrigger>
+                        <TabsTrigger value="completed">Завершённые</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input placeholder="Поиск по клиенту, услуге или авто..." className="flex-1" />
+                    <Button variant="outline">
+                      <Icon name="SlidersHorizontal" size={18} className="mr-2" />
+                      Фильтры
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -419,6 +445,71 @@ const Index = () => {
                               {req.status}
                             </Badge>
                             <span className="text-lg font-bold text-primary">{req.price}</span>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Icon name="ChevronRight" size={20} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeSection === 'clients' && (
+            <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Users" size={24} className="text-primary" />
+                    База клиентов
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Input placeholder="Поиск по имени или телефону..." className="w-80" />
+                    <Button className="bg-gradient-to-r from-primary to-secondary">
+                      <Icon name="Plus" size={18} className="mr-2" />
+                      Добавить клиента
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    { id: 1, name: 'Алексей Петров', phone: '+7 (999) 123-45-67', email: 'petrov@mail.ru', balance: 0, orders: 3 },
+                    { id: 2, name: 'Мария Иванова', phone: '+7 (999) 234-56-78', email: 'ivanova@mail.ru', balance: -2250, orders: 1 },
+                    { id: 3, name: 'ООО "ТехноСтрой"', phone: '+7 (999) 345-67-89', email: 'info@tehnostroy.ru', balance: 45000, orders: 5 },
+                    { id: 4, name: 'Дмитрий Соколов', phone: '+7 (999) 456-78-90', email: 'sokolov@mail.ru', balance: 0, orders: 2 },
+                    { id: 5, name: 'Анна Сидорова', phone: '+7 (999) 567-89-01', email: 'sidorova@mail.ru', balance: 5000, orders: 4 },
+                  ].map((client) => (
+                    <div key={client.id} className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                            {client.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div className="flex-1 grid grid-cols-4 gap-4">
+                            <div>
+                              <div className="text-sm text-muted-foreground">Клиент</div>
+                              <div className="font-medium">{client.name}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground">Телефон / Email</div>
+                              <div className="font-medium text-sm">{client.phone}</div>
+                              <div className="text-sm text-muted-foreground">{client.email}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground">Заказов</div>
+                              <div className="font-medium">{client.orders}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-muted-foreground">Баланс</div>
+                              <div className={cn('font-bold text-lg', client.balance >= 0 ? 'text-success' : 'text-destructive')}>
+                                {client.balance >= 0 ? '+' : ''}₽{client.balance.toLocaleString()}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -482,58 +573,11 @@ const Index = () => {
             </Card>
           )}
 
-          {activeSection === 'services' && (
-            <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Wrench" size={24} className="text-primary" />
-                  Каталог услуг
-                </CardTitle>
-                <CardDescription>Управление услугами и ценообразованием</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Icon name="Construction" size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>Раздел в разработке</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {activeSection === 'services' && <ServicesSection />}
 
-          {activeSection === 'finance' && (
-            <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Wallet" size={24} className="text-primary" />
-                  Финансовый учёт
-                </CardTitle>
-                <CardDescription>Оплаты, предоплаты, доплаты, гарантии</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Icon name="Construction" size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>Раздел в разработке</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {activeSection === 'finance' && <FinanceSection />}
 
-          {activeSection === 'settings' && (
-            <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Settings" size={24} className="text-primary" />
-                  Настройки системы
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Icon name="Construction" size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>Раздел в разработке</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {activeSection === 'settings' && <SettingsSection />}
         </div>
       </main>
 
@@ -644,20 +688,87 @@ const Index = () => {
                     </CardContent>
                   </Card>
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1">
-                      <Icon name="Printer" size={18} className="mr-2" />
-                      Печать
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Icon name="Edit" size={18} className="mr-2" />
-                      Редактировать
-                    </Button>
-                    <Button className="flex-1 bg-gradient-to-r from-primary to-secondary">
-                      <Icon name="Check" size={18} className="mr-2" />
-                      Изменить статус
-                    </Button>
-                  </div>
+                  <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Быстрые действия</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {req.status === 'Новая' && (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-warning to-warning/80" 
+                          size="lg"
+                          onClick={() => {
+                            toast({
+                              title: "Заявка взята в работу",
+                              description: `Заявка #${req.id} переведена в статус "В работе"`,
+                            });
+                          }}
+                        >
+                          <Icon name="Play" size={18} className="mr-2" />
+                          Взять в работу
+                        </Button>
+                      )}
+                      {req.status === 'В работе' && (
+                        <>
+                          <Button 
+                            className="w-full bg-gradient-to-r from-success to-success/80" 
+                            size="lg"
+                            onClick={() => {
+                              toast({
+                                title: "Заявка завершена",
+                                description: `Заявка #${req.id} успешно завершена`,
+                              });
+                            }}
+                          >
+                            <Icon name="CheckCircle" size={18} className="mr-2" />
+                            Завершить заявку
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => {
+                              toast({
+                                title: "Оплата принята",
+                                description: `Платёж по заявке #${req.id} зарегистрирован`,
+                              });
+                            }}
+                          >
+                            <Icon name="DollarSign" size={18} className="mr-2" />
+                            Принять оплату
+                          </Button>
+                        </>
+                      )}
+                      {req.status === 'Ожидает оплаты' && (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-info to-info/80" 
+                          size="lg"
+                          onClick={() => {
+                            toast({
+                              title: "Оплата подтверждена",
+                              description: `Оплата по заявке #${req.id} подтверждена`,
+                            });
+                          }}
+                        >
+                          <Icon name="Wallet" size={18} className="mr-2" />
+                          Подтвердить оплату
+                        </Button>
+                      )}
+                      <div className="grid grid-cols-3 gap-2 pt-2">
+                        <Button variant="outline" size="sm">
+                          <Icon name="Printer" size={16} className="mr-1" />
+                          Печать
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Icon name="Edit" size={16} className="mr-1" />
+                          Править
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Icon name="Send" size={16} className="mr-1" />
+                          Отправить
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </>
             );
