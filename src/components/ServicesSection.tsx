@@ -2,157 +2,188 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Icon from '@/components/ui/icon';
-import { cn } from '@/lib/utils';
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  unit: string;
-  km_price?: number;
-  is_active: boolean;
-}
 
 export const ServicesSection = () => {
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('individual');
 
-  const services: Service[] = [
-    { id: 1, name: 'Выездная мойка', description: 'Профессиональная мойка автомобиля на выезде', price: 2500, unit: 'услуга', is_active: true },
-    { id: 2, name: 'Аренда авто', description: 'Посуточная аренда автомобиля премиум класса', price: 5000, unit: 'сутки', km_price: 15, is_active: true },
-    { id: 3, name: 'Детейлинг', description: 'Полный комплекс детейлинга автомобиля', price: 12000, unit: 'услуга', is_active: true },
-    { id: 4, name: 'Абонемент консьерж', description: 'Корпоративный пакет услуг консьержа', price: 45000, unit: 'месяц', is_active: true },
-    { id: 5, name: 'Водитель с авто', description: 'Аренда автомобиля с водителем', price: 3000, unit: 'час', is_active: true },
-    { id: 6, name: 'Химчистка салона', description: 'Профессиональная химчистка салона', price: 8000, unit: 'услуга', is_active: false },
+  const individualServices = {
+    'Озон и запахи': [
+      { name: 'Озонирование салона базовое', price: 3500, time: '30-40 мин', crossover: '+30%', minivan: '+50%' },
+      { name: 'Озонирование усиленное', price: 5500, time: '60-90 мин', crossover: '+30%', minivan: '+50%' },
+      { name: 'Удаление запаха после курения', price: 8000, time: '2 часа', crossover: '+30%', minivan: '+50%' },
+      { name: 'Удаление запаха после животных', price: 9000, time: '2.5 часа', crossover: '+30%', minivan: '+50%' },
+      { name: 'Удаление плесени комплекс', price: 17000, time: '4 часа', crossover: '+30%', minivan: '+50%' },
+    ],
+    'Химчистка': [
+      { name: 'Экспресс-химчистка (2 сиденья)', price: 5000, time: '1 час', crossover: '+30%', minivan: '+50%' },
+      { name: 'Химчистка салона (без потолка)', price: 13000, time: '3 часа', crossover: '+30%', minivan: '+50%' },
+      { name: 'Химчистка салона полная (с потолком)', price: 20000, time: '5 часов', crossover: '+30%', minivan: '+50%' },
+      { name: 'Химчистка потолка', price: 7000, time: '2 часа', crossover: '+30%', minivan: '+50%' },
+    ],
+    'Стекла и фары': [
+      { name: 'Полировка фар (пара)', price: 6500, crossover: '+20%', minivan: '+30%' },
+      { name: 'Антидождь (все стекла)', price: 3500, crossover: '+20%', minivan: '+30%' },
+      { name: 'Заклейка скола', price: 2500, crossover: '+20%', minivan: '+30%' },
+    ],
+    'АКБ и электрика': [
+      { name: 'Запуск автомобиля (прикурить)', price: 2500 },
+      { name: 'Диагностика АКБ', price: 2000 },
+      { name: 'Зарядка АКБ (выезд)', price: 5000 },
+    ],
+  };
+
+  const packages = [
+    { name: 'Антизапах Про', description: 'Озон 90 мин + химчистка + фильтр + кондиционер', price: 24000, old: 31000 },
+    { name: 'Прощай, курилка', description: 'Озон + химчистка + фильтр + потолок', price: 26000, old: 34000 },
+    { name: 'Идеальный салон', description: 'Химчистка + озон + кожа + пластик + потолок', price: 36000, old: 48000 },
+    { name: 'Продай дороже Премиум', description: 'Полная подготовка к продаже', price: 40000, old: 54000 },
+  ];
+
+  const subscriptions = [
+    { name: 'Чистый салон', description: '4 озонирования/месяц', price: 13000, old: 14000, period: 'месяц' },
+    { name: 'Сезонный уход', description: '4 комплекса/год', price: 32000, old: 42000, period: 'год' },
+    { name: 'Всегда готов', description: '12 визитов/год', price: 80000, old: 115000, period: 'год' },
   ];
 
   return (
-    <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Wrench" size={24} className="text-primary" />
-              Каталог услуг
-            </CardTitle>
-            <CardDescription>Управление услугами и ценообразованием</CardDescription>
+    <div className="space-y-6 animate-scale-in">
+      <Card className="bg-card/50 backdrop-blur border-border/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="Wrench" size={24} className="text-primary" />
+                Каталог услуг Русская Фантазия
+              </CardTitle>
+              <CardDescription>Полный спектр выездных услуг для вашего автомобиля</CardDescription>
+            </div>
+            <Badge variant="outline" className="px-4 py-2">
+              <Icon name="Clock" size={16} className="mr-2" />
+              09:00-19:00
+            </Badge>
           </div>
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-primary to-secondary">
-                <Icon name="Plus" size={18} className="mr-2" />
-                Добавить услугу
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Новая услуга</DialogTitle>
-                <DialogDescription>Добавление услуги в каталог</DialogDescription>
-              </DialogHeader>
-              
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Название услуги</Label>
-                  <Input placeholder="Например: Выездная мойка" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Описание</Label>
-                  <Textarea placeholder="Краткое описание услуги" rows={3} />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Цена (₽)</Label>
-                    <Input type="number" placeholder="5000" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Единица измерения</Label>
-                    <Select defaultValue="услуга">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="услуга">Услуга</SelectItem>
-                        <SelectItem value="час">Час</SelectItem>
-                        <SelectItem value="сутки">Сутки</SelectItem>
-                        <SelectItem value="месяц">Месяц</SelectItem>
-                        <SelectItem value="км">Километр</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Цена за км (опционально)</Label>
-                  <Input type="number" placeholder="15" />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Активна</Label>
-                  <Switch defaultChecked />
-                </div>
-              </div>
-              
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddOpen(false)}>Отмена</Button>
-                <Button className="bg-gradient-to-r from-primary to-secondary" onClick={() => setIsAddOpen(false)}>
-                  Сохранить
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="grid gap-4">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="p-4 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group"
-              onClick={() => setEditingService(service)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold">{service.name}</h3>
-                    <Badge variant={service.is_active ? "default" : "secondary"}>
-                      {service.is_active ? 'Активна' : 'Неактивна'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Icon name="DollarSign" size={16} className="text-primary" />
-                      <span className="font-bold text-primary">₽{service.price.toLocaleString()}</span>
-                      <span className="text-muted-foreground">/ {service.unit}</span>
-                    </div>
-                    {service.km_price && (
-                      <div className="flex items-center gap-2">
-                        <Icon name="Navigation" size={16} className="text-secondary" />
-                        <span className="font-medium">₽{service.km_price} / км</span>
+        </CardHeader>
+        
+        <CardContent>
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="individual">Индивидуальные</TabsTrigger>
+              <TabsTrigger value="packages">Пакеты</TabsTrigger>
+              <TabsTrigger value="subscriptions">Абонементы</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="individual" className="space-y-4">
+              <Accordion type="single" collapsible className="w-full">
+                {Object.entries(individualServices).map(([category, services], idx) => (
+                  <AccordionItem key={idx} value={`item-${idx}`}>
+                    <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                      {category}
+                      <Badge variant="secondary" className="ml-2">{services.length}</Badge>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2 pt-2">
+                        {services.map((service, sIdx) => (
+                          <div key={sIdx} className="p-3 rounded-lg bg-sidebar/20 border border-border/50 hover:border-primary/50 transition-all">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="font-medium">{service.name}</div>
+                                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                  {service.time && (
+                                    <span className="flex items-center gap-1">
+                                      <Icon name="Clock" size={14} />
+                                      {service.time}
+                                    </span>
+                                  )}
+                                  {service.crossover && <span>Кроссовер: {service.crossover}</span>}
+                                  {service.minivan && <span>Минивэн: {service.minivan}</span>}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xl font-bold text-primary">от ₽{service.price.toLocaleString()}</div>
+                                <Button size="sm" variant="outline" className="mt-2">Заказать</Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </TabsContent>
+
+            <TabsContent value="packages" className="space-y-4">
+              {packages.map((pkg, idx) => (
+                <div key={idx} className="p-5 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/30 hover:border-primary/50 transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="text-xl font-bold">{pkg.name}</h4>
+                        <Badge className="bg-success">Экономия ₽{(pkg.old - pkg.price).toLocaleString()}</Badge>
+                      </div>
+                      <p className="text-muted-foreground mb-3">{pkg.description}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground line-through">₽{pkg.old.toLocaleString()}</span>
+                        <Icon name="ArrowRight" size={16} />
+                        <span className="text-2xl font-bold text-primary">₽{pkg.price.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <Button className="bg-gradient-to-r from-primary to-secondary">
+                      <Icon name="ShoppingCart" size={18} className="mr-2" />
+                      Заказать
+                    </Button>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
-                  <Icon name="ChevronRight" size={20} />
-                </Button>
+              ))}
+            </TabsContent>
+
+            <TabsContent value="subscriptions" className="space-y-4">
+              {subscriptions.map((sub, idx) => (
+                <Card key={idx} className="bg-gradient-to-br from-sidebar/40 to-sidebar/20 border-border/50 hover:border-primary/50 transition-all">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{sub.name}</span>
+                      <Badge variant="outline" className="text-lg px-4 py-2">₽{sub.price.toLocaleString()}/{sub.period}</Badge>
+                    </CardTitle>
+                    <CardDescription>{sub.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm space-y-1">
+                        <div className="text-muted-foreground">Без абонемента: ₽{sub.old.toLocaleString()}</div>
+                        <div className="text-success font-medium">Экономия: ₽{(sub.old - sub.price).toLocaleString()}/{sub.period}</div>
+                      </div>
+                      <Button variant="outline">
+                        <Icon name="Phone" size={18} className="mr-2" />
+                        Подключить
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-6 p-4 rounded-lg bg-info/10 border border-info/30">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" size={20} className="text-info mt-0.5" />
+              <div className="flex-1 text-sm">
+                <div className="font-medium mb-1">Дополнительная информация</div>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Выезд в пределах МКАД — БЕСПЛАТНО при заказе от ₽5,000</li>
+                  <li>• Ночное время (19:00-09:00) — +50% к стоимости</li>
+                  <li>• Кроссоверы/внедорожники — наценка указана для каждой услуги</li>
+                  <li>• Формат "Забрать-Сделать-Вернуть" — доплата от ₽3,000</li>
+                </ul>
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
