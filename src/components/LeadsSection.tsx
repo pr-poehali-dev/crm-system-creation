@@ -42,6 +42,14 @@ export const LeadsSection = () => {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [newLead, setNewLead] = useState({
+    client: '',
+    phone: '',
+    message: '',
+    car: '',
+    sum: 0
+  });
 
   const loadAvitoMessages = async () => {
     setIsLoadingLeads(true);
@@ -84,10 +92,10 @@ export const LeadsSection = () => {
         setLeads(formattedLeads);
         
         toast({
-          title: data.demo ? "Демо-данные загружены" : "Лиды загружены из Avito",
+          title: data.demo ? "Демо-данные загружены" : "Диалоги загружены из Avito",
           description: data.demo 
-            ? `${data.count} примеров лидов для демонстрации. ${data.message}`
-            : `Загружено ${data.count} лидов из Avito`,
+            ? `${data.count} примеров лидов для демонстрации`
+            : `Загружено ${data.count} реальных диалогов с Avito. Подтвердите нужные и переведите в клиенты.`,
         });
       } else {
         throw new Error('Неверный формат ответа');
@@ -187,9 +195,12 @@ export const LeadsSection = () => {
                 <Icon name="Download" size={18} className="mr-2" />
                 {isLoadingLeads ? 'Загрузка...' : 'Загрузить из Avito'}
               </Button>
-              <Button className="bg-gradient-to-r from-primary to-secondary">
+              <Button 
+                className="bg-gradient-to-r from-primary to-secondary"
+                onClick={() => setIsAddLeadOpen(true)}
+              >
                 <Icon name="Plus" size={18} className="mr-2" />
-                Добавить лид
+                Добавить диалог вручную
               </Button>
             </div>
           </div>
@@ -526,6 +537,133 @@ export const LeadsSection = () => {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог добавления лида вручную */}
+      <Dialog open={isAddLeadOpen} onOpenChange={setIsAddLeadOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Добавить диалог из Avito</DialogTitle>
+            <DialogDescription>
+              Внесите информацию из диалога с клиентом с Avito
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="lead_client">Имя клиента</Label>
+                <Input
+                  id="lead_client"
+                  placeholder="Александр"
+                  value={newLead.client}
+                  onChange={(e) => setNewLead({ ...newLead, client: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lead_phone">Телефон (если есть)</Label>
+                <Input
+                  id="lead_phone"
+                  placeholder="+7 (999) 123-45-67"
+                  value={newLead.phone}
+                  onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="lead_car">Интересующий автомобиль</Label>
+                <Input
+                  id="lead_car"
+                  placeholder="BMW X5 2019"
+                  value={newLead.car}
+                  onChange={(e) => setNewLead({ ...newLead, car: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="lead_message">Сообщение клиента</Label>
+                <Textarea
+                  id="lead_message"
+                  placeholder="Здравствуйте, интересует ваш автомобиль..."
+                  rows={4}
+                  value={newLead.message}
+                  onChange={(e) => setNewLead({ ...newLead, message: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lead_sum">Предполагаемая сумма (₽)</Label>
+                <Input
+                  id="lead_sum"
+                  type="number"
+                  placeholder="0"
+                  value={newLead.sum}
+                  onChange={(e) => setNewLead({ ...newLead, sum: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+
+            <Card className="bg-info/10 border-info/30">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <Icon name="Info" size={20} className="text-info mt-0.5" />
+                  <div className="space-y-1 text-sm">
+                    <p className="font-medium">Инструкция</p>
+                    <p className="text-muted-foreground">
+                      Скопируйте информацию из диалога с клиентом в Avito и вставьте в форму.
+                      После добавления сможете обработать обращение и перевести в клиенты.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddLeadOpen(false)}>
+              Отмена
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-primary to-secondary"
+              onClick={() => {
+                if (!newLead.client || !newLead.message) {
+                  toast({
+                    title: "Ошибка",
+                    description: "Заполните имя клиента и сообщение",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                const lead: Lead = {
+                  id: `manual_${Date.now()}`,
+                  source: 'avito',
+                  client: newLead.client,
+                  phone: newLead.phone || 'Не указан',
+                  message: newLead.message,
+                  car: newLead.car || 'Не указан',
+                  stage: 'new',
+                  created: new Date().toLocaleString('ru-RU'),
+                  lastActivity: new Date().toLocaleString('ru-RU'),
+                  sum: newLead.sum
+                };
+
+                setLeads([lead, ...leads]);
+                setIsAddLeadOpen(false);
+                setNewLead({ client: '', phone: '', message: '', car: '', sum: 0 });
+
+                toast({
+                  title: "Диалог добавлен",
+                  description: `Обращение от ${lead.client} добавлено в лиды`,
+                });
+              }}
+            >
+              <Icon name="Save" size={18} className="mr-2" />
+              Добавить лид
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

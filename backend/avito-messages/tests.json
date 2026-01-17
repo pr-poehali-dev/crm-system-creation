@@ -1,13 +1,12 @@
 {
   "tests": [
     {
-      "name": "Test loading Avito leads",
+      "name": "Test loading Avito chats",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
       "expectedBody": {
-        "success": true,
-        "demo": true
+        "success": true
       },
       "bodyMatcher": "partial"
     }

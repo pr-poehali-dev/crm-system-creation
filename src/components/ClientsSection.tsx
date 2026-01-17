@@ -50,6 +50,26 @@ export const ClientsSection = () => {
     notes: ''
   });
 
+  const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
+  const [licensePhoto, setLicensePhoto] = useState<string | null>(null);
+
+  const handleFileUpload = (file: File, type: 'passport' | 'license') => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      if (type === 'passport') {
+        setPassportPhoto(base64);
+      } else {
+        setLicensePhoto(base64);
+      }
+      toast({
+        title: "Фото загружено",
+        description: `Фото ${type === 'passport' ? 'паспорта' : 'водительского удостоверения'} успешно загружено`,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddClient = () => {
     if (!newClient.name || !newClient.phone) {
       toast({
@@ -82,6 +102,8 @@ export const ClientsSection = () => {
       license_issued_date: '',
       notes: ''
     });
+    setPassportPhoto(null);
+    setLicensePhoto(null);
 
     toast({
       title: "Клиент добавлен",
@@ -325,6 +347,37 @@ export const ClientsSection = () => {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="passport_photo">Фото паспорта</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="passport_photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'passport');
+                      }}
+                    />
+                    {passportPhoto && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(passportPhoto, '_blank')}
+                      >
+                        <Icon name="Eye" size={16} className="mr-1" />
+                        Просмотр
+                      </Button>
+                    )}
+                  </div>
+                  {passportPhoto && (
+                    <div className="mt-2">
+                      <img src={passportPhoto} alt="Паспорт" className="max-h-32 rounded border" />
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -353,6 +406,37 @@ export const ClientsSection = () => {
                       onChange={(e) => setNewClient({ ...newClient, license_issued_date: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="license_photo">Фото водительского удостоверения</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="license_photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'license');
+                      }}
+                    />
+                    {licensePhoto && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(licensePhoto, '_blank')}
+                      >
+                        <Icon name="Eye" size={16} className="mr-1" />
+                        Просмотр
+                      </Button>
+                    )}
+                  </div>
+                  {licensePhoto && (
+                    <div className="mt-2">
+                      <img src={licensePhoto} alt="Водительское удостоверение" className="max-h-32 rounded border" />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
