@@ -28,13 +28,16 @@ export const VehicleHandoverDialog = ({
   const [handoverData, setHandoverData] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
-    odometer: 0,
-    fuel_level: 100,
-    fuel_liters: 0,
-    transponder: false,
+    odometer: '',
+    fuel_level: '',
+    transponder_needed: false,
+    transponder_number: '',
     notes: '',
     damages: '',
-    payment_amount: 0,
+    deposit_amount: 0,
+    rental_amount: 0,
+    rental_payment_method: 'cash',
+    rental_receipt: null as File | null,
   });
 
   const [customFields, setCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
@@ -59,7 +62,7 @@ export const VehicleHandoverDialog = ({
   const handleHandover = () => {
     if (!handoverData.odometer) {
       toast({
-        title: "Заполните пробег",
+        title: "Заполните показания спидометра",
         description: "Пробег обязателен для заполнения",
         variant: "destructive",
       });
@@ -69,14 +72,6 @@ export const VehicleHandoverDialog = ({
       toast({
         title: "Заполните уровень топлива",
         description: "Уровень топлива обязателен для заполнения",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!handoverData.fuel_liters) {
-      toast({
-        title: "Заполните количество топлива",
-        description: "Количество литров обязательно для заполнения",
         variant: "destructive",
       });
       return;
@@ -91,19 +86,22 @@ export const VehicleHandoverDialog = ({
 
     toast({
       title: mode === 'pickup' ? "Автомобиль выдан" : "Автомобиль принят",
-      description: `${vehicle?.model || booking?.vehicle?.model || 'Автомобиль'} • Пробег: ${handoverData.odometer} км • Топливо: ${handoverData.fuel_level}% (${handoverData.fuel_liters}л)`,
+      description: `${vehicle?.model || booking?.vehicle?.model || 'Автомобиль'} • Пробег: ${handoverData.odometer} км • Топливо: ${handoverData.fuel_level}`,
     });
     onOpenChange(false);
     setHandoverData({
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
-      odometer: 0,
-      fuel_level: 100,
-      fuel_liters: 0,
-      transponder: false,
+      odometer: '',
+      fuel_level: '',
+      transponder_needed: false,
+      transponder_number: '',
       notes: '',
       damages: '',
-      payment_amount: 0,
+      deposit_amount: 0,
+      rental_amount: 0,
+      rental_payment_method: 'cash',
+      rental_receipt: null,
     });
   };
 
@@ -148,22 +146,77 @@ export const VehicleHandoverDialog = ({
 
           <TabsContent value="main" className="space-y-6 py-4">
           {mode === 'pickup' && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <Icon name="AlertTriangle" size={20} className="text-red-600" />
-                <div className="text-sm font-medium text-red-900">Сумма к оплате</div>
+            <>
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Icon name="Wallet" size={20} className="text-amber-600" />
+                  <div className="text-sm font-medium text-amber-900 dark:text-amber-100">Получение залога</div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deposit">Сумма залога (₽)</Label>
+                  <Input
+                    id="deposit"
+                    type="number"
+                    placeholder="10000"
+                    value={handoverData.deposit_amount || ''}
+                    onChange={(e) => setHandoverData({...handoverData, deposit_amount: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="payment">Сумма платежа (₽)</Label>
-                <Input
-                  id="payment"
-                  type="number"
-                  placeholder="42000"
-                  value={handoverData.payment_amount || ''}
-                  onChange={(e) => setHandoverData({...handoverData, payment_amount: parseFloat(e.target.value) || 0})}
-                />
+
+              <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Icon name="CreditCard" size={20} className="text-green-600" />
+                  <div className="text-sm font-medium text-green-900 dark:text-green-100">Оплата аренды</div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rental_amount">Сумма оплаты (₽) *</Label>
+                    <Input
+                      id="rental_amount"
+                      type="number"
+                      placeholder="42000"
+                      value={handoverData.rental_amount || ''}
+                      onChange={(e) => setHandoverData({...handoverData, rental_amount: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_method">Способ оплаты *</Label>
+                    <Select 
+                      value={handoverData.rental_payment_method} 
+                      onValueChange={(val) => setHandoverData({...handoverData, rental_payment_method: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Наличные</SelectItem>
+                        <SelectItem value="transfer">Банковский перевод</SelectItem>
+                        <SelectItem value="bank">Безналичный расчёт (р/с)</SelectItem>
+                        <SelectItem value="qr">QR-код (СБП)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="receipt">Прикрепить чек (необязательно)</Label>
+                    <Input
+                      id="receipt"
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setHandoverData({...handoverData, rental_receipt: e.target.files?.[0] || null})}
+                    />
+                    {handoverData.rental_receipt && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Icon name="FileText" size={14} />
+                        {handoverData.rental_receipt.name}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           <div className="grid grid-cols-2 gap-4">
@@ -188,57 +241,66 @@ export const VehicleHandoverDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="odometer">Пробег при {mode === 'pickup' ? 'выдаче' : 'возврате'} (км) *</Label>
-            <Input
-              id="odometer"
-              type="number"
-              placeholder="272540"
-              value={handoverData.odometer || ''}
-              onChange={(e) => setHandoverData({...handoverData, odometer: parseInt(e.target.value) || 0})}
-              className="text-lg font-mono"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-sidebar/20 border rounded-lg space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="Gauge" size={18} className="text-primary" />
+              <Label className="text-base font-semibold">Техническое состояние</Label>
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="fuel_level">Уровень топлива (%) *</Label>
+              <Label htmlFor="odometer">Показания спидометра (км) *</Label>
+              <Input
+                id="odometer"
+                type="text"
+                placeholder="272540 или текст"
+                value={handoverData.odometer}
+                onChange={(e) => setHandoverData({...handoverData, odometer: e.target.value})}
+                className="text-lg font-mono"
+              />
+              <p className="text-xs text-muted-foreground">Укажите цифры или текст (например, "не работает")</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fuel_level">Уровень топлива *</Label>
               <Input
                 id="fuel_level"
-                type="number"
-                min="0"
-                max="100"
-                placeholder="100"
-                value={handoverData.fuel_level || ''}
-                onChange={(e) => setHandoverData({...handoverData, fuel_level: parseInt(e.target.value) || 0})}
+                type="text"
+                placeholder="100% или 50 литров, или текст"
+                value={handoverData.fuel_level}
+                onChange={(e) => setHandoverData({...handoverData, fuel_level: e.target.value})}
                 className="text-lg"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="fuel_liters">Количество литров *</Label>
-              <Input
-                id="fuel_liters"
-                type="number"
-                step="0.1"
-                placeholder="75.5"
-                value={handoverData.fuel_liters || ''}
-                onChange={(e) => setHandoverData({...handoverData, fuel_liters: parseFloat(e.target.value) || 0})}
-                className="text-lg"
-              />
+              <p className="text-xs text-muted-foreground">Укажите проценты, литры или текст</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <Label htmlFor="transponder" className="cursor-pointer">Выдан транспондер</Label>
-              <div className="text-sm text-muted-foreground">Отметьте если был выдан</div>
+          {mode === 'pickup' && (
+            <div className="p-4 border rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="transponder_needed" className="cursor-pointer">Необходим транспондер</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Отметьте, если нужна выдача транспондера для платных дорог</p>
+                </div>
+                <Switch
+                  id="transponder_needed"
+                  checked={handoverData.transponder_needed}
+                  onCheckedChange={(checked) => setHandoverData({...handoverData, transponder_needed: checked})}
+                />
+              </div>
+              
+              {handoverData.transponder_needed && (
+                <div className="space-y-2">
+                  <Label htmlFor="transponder_number">Номер транспондера</Label>
+                  <Input
+                    id="transponder_number"
+                    placeholder="TP-12345"
+                    value={handoverData.transponder_number}
+                    onChange={(e) => setHandoverData({...handoverData, transponder_number: e.target.value})}
+                  />
+                </div>
+              )}
             </div>
-            <Switch
-              id="transponder"
-              checked={handoverData.transponder}
-              onCheckedChange={(checked) => setHandoverData({...handoverData, transponder: checked})}
-            />
-          </div>
+          )}
 
           {mode === 'return' && (
             <div className="space-y-2">
