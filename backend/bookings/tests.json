@@ -1,0 +1,85 @@
+{
+  "tests": [
+    {
+      "name": "Get all bookings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "bookings": "array",
+        "total": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create new booking",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "client_name": "Кузнецова Анастасия",
+        "client_phone": "+7 (918) 098 26 98",
+        "vehicle_id": 7,
+        "start_date": "2026-01-30T20:00:00",
+        "end_date": "2026-02-05T10:00:00",
+        "days": 6,
+        "pickup_location": "Офис",
+        "dropoff_location": "Офис",
+        "status": "Бронь",
+        "total_price": 58300,
+        "paid_amount": 10000,
+        "deposit_amount": 10000,
+        "services": [
+          {
+            "id": "rent",
+            "name": "Аренда авто",
+            "price": 40800,
+            "adjustedPrice": 40800
+          },
+          {
+            "id": "roaming",
+            "name": "роуминг",
+            "price": 3000,
+            "adjustedPrice": 3000
+          },
+          {
+            "id": "poverenost",
+            "name": "доверенность",
+            "price": 4500,
+            "adjustedPrice": 4500
+          }
+        ],
+        "rental_days": 6,
+        "rental_km": 2100,
+        "rental_price_per_day": 6800,
+        "rental_price_per_km": 19.43,
+        "notes": "Краснодар - Станцминда - Коби- Степанцминда -Коби- Степанцминда-Коби- Степанцминда-Краснодар",
+        "custom_fields": [],
+        "payments": [
+          {
+            "date": "2026-01-07",
+            "amount": 10000,
+            "method": "QR-код",
+            "type": "+"
+          }
+        ],
+        "created_by": "marina"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "id": "number",
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get booking by ID",
+      "method": "GET",
+      "path": "/?id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "booking": "object"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

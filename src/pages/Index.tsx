@@ -98,6 +98,10 @@ const Index = () => {
   ];
 
   const [requests, setRequests] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+
+  const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
 
   const calculatePrice = () => {
     let total = 0;
@@ -122,6 +126,23 @@ const Index = () => {
   const [fleet, setFleet] = useState<any[]>([]);
   const [isLoadingFleet, setIsLoadingFleet] = useState(true);
 
+  const loadBookings = async () => {
+    try {
+      const response = await fetch(BOOKINGS_API);
+      const data = await response.json();
+      setBookings(data.bookings || []);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      toast({
+        title: "Ошибка загрузки",
+        description: "Не удалось загрузить бронирования",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
   useEffect(() => {
     const loadFleet = async () => {
       try {
@@ -141,6 +162,7 @@ const Index = () => {
     };
 
     loadFleet();
+    loadBookings();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -545,21 +567,76 @@ const Index = () => {
                     <Button variant="outline" onClick={() => setIsNewRequestOpen(false)}>Отмена</Button>
                     <Button 
                       className="bg-gradient-to-r from-primary to-secondary" 
-                      onClick={() => {
-                        const requestData = {
-                          ...newRequest,
+                      onClick={async () => {
+                        const selectedVehicle = fleet.find(v => v.model === newRequest.car);
+                        const rentServiceData = selectedServices.find(s => s.id === 'rent');
+                        
+                        const bookingData = {
+                          client_name: newRequest.client,
+                          client_phone: newRequest.phone,
+                          vehicle_id: selectedVehicle?.id,
+                          vehicle_model: selectedVehicle?.model,
+                          vehicle_license_plate: selectedVehicle?.license_plate,
+                          start_date: newRequest.startDate.toISOString(),
+                          end_date: newRequest.endDate.toISOString(),
+                          days: newRequest.days,
+                          pickup_location: '',
+                          dropoff_location: '',
+                          status: 'Бронь',
+                          total_price: calculatePrice(),
+                          paid_amount: 0,
+                          deposit_amount: 0,
                           services: selectedServices,
+                          rental_days: rentServiceData ? newRequest.days : null,
+                          rental_km: rentServiceData ? newRequest.km : null,
+                          rental_price_per_day: rentServiceData ? (rentServiceData.adjustedPrice / newRequest.days) : null,
+                          rental_price_per_km: rentServiceData ? (services.find(s => s.id === 'rent')?.kmPrice || 0) : null,
+                          notes: newRequest.notes,
                           custom_fields: requestCustomFields.filter(f => f.name && f.value),
-                          price: calculatePrice()
+                          payments: [],
+                          created_by: currentUser || 'unknown'
                         };
-                        console.log('Request data:', requestData);
-                        setIsNewRequestOpen(false);
-                        toast({
-                          title: "Заявка создана",
-                          description: `Новая заявка на сумму ₽${calculatePrice().toLocaleString()} успешно создана`,
-                        });
-                        setRequestCustomFields([]);
-                        setSelectedServices([]);
+                        
+                        try {
+                          const response = await fetch(BOOKINGS_API, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(bookingData)
+                          });
+                          
+                          if (!response.ok) {
+                            throw new Error('Failed to create booking');
+                          }
+                          
+                          await loadBookings();
+                          setIsNewRequestOpen(false);
+                          toast({
+                            title: "Бронь создана",
+                            description: `Новая бронь на сумму ₽${calculatePrice().toLocaleString()} успешно создана`,
+                          });
+                          setRequestCustomFields([]);
+                          setSelectedServices([]);
+                          setNewRequest({
+                            client: '',
+                            phone: '',
+                            service: '',
+                            car: '',
+                            startDate: new Date(),
+                            endDate: new Date(),
+                            notes: '',
+                            days: 1,
+                            km: 0,
+                          });
+                        } catch (error) {
+                          console.error('Error creating booking:', error);
+                          toast({
+                            title: "Ошибка",
+                            description: "Не удалось создать бронь",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                     >
                       Создать заявку

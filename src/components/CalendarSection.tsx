@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +11,35 @@ import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay
 import { ru } from 'date-fns/locale';
 
 interface Booking {
-  id: string;
-  carModel: string;
-  client: string;
-  startDate: string;
-  endDate: string;
-  status: 'Занято' | 'Бронь' | 'В аренде' | 'Вишлист';
+  id: number;
+  client_name: string;
+  client_phone: string;
+  vehicle_id?: number;
+  vehicle_model?: string;
+  vehicle_license_plate?: string;
+  start_date: string;
+  end_date: string;
   days: number;
+  pickup_location?: string;
+  dropoff_location?: string;
+  status: string;
+  total_price: number;
+  paid_amount: number;
+  deposit_amount: number;
+  services: any[];
+  rental_days?: number;
+  rental_km?: number;
+  rental_price_per_day?: number;
+  rental_price_per_km?: number;
+  notes?: string;
+  custom_fields?: any[];
+  payments?: any[];
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
 }
+
+const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
 
 export const CalendarSection = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -26,44 +47,40 @@ export const CalendarSection = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [showWishlist, setShowWishlist] = useState(true);
   const [showArchive, setShowArchive] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fleet, setFleet] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [bookingsResponse, vehiclesResponse] = await Promise.all([
+          fetch(BOOKINGS_API),
+          fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f')
+        ]);
+        
+        const bookingsData = await bookingsResponse.json();
+        const vehiclesData = await vehiclesResponse.json();
+        
+        setBookings(bookingsData.bookings || []);
+        
+        const vehicleNames = (vehiclesData.vehicles || []).map((v: any) => 
+          `${v.model} #${v.license_plate.slice(-3)}`
+        );
+        setFleet(vehicleNames.length > 0 ? vehicleNames : ['Honda Stepwgn #763']);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [currentDate]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  const fleet = [
-    'Honda Stepwgn #763',
-    'Hyundai Grand Starex #464',
-    'Hyundai Grand Starex #692',
-    'Hyundai Grand Starex #118',
-    'Hyundai Grand Starex #218',
-    'Hyundai Grand Starex #304',
-    'Hyundai Grand Starex #670',
-    'Hyundai Grand Starex #826',
-    'Hyundai Grand Starex #080',
-    'Hyundai Grand Starex #194',
-    'Hyundai Grand Starex #939',
-    'Hyundai Grand Starex #485',
-    'Hyundai Grand Starex #609',
-    'Hyundai Grand Starex #656',
-    'Hyundai Grand Starex #776',
-    'Hyundai Grand Starex #967',
-  ];
-
-  const bookings: Booking[] = [
-    { id: 'b1', carModel: 'Hyundai Grand Starex #464', client: 'К - 4 суток', startDate: '2026-01-17', endDate: '2026-01-21', status: 'Занято', days: 4 },
-    { id: 'b2', carModel: 'Hyundai Grand Starex #692', client: 'З - 5 суток Д', startDate: '2026-01-18', endDate: '2026-01-23', status: 'Бронь', days: 5 },
-    { id: 'b3', carModel: 'Hyundai Grand Starex #218', client: 'М - 5 суток', startDate: '2026-01-19', endDate: '2026-01-24', status: 'Занято', days: 5 },
-    { id: 'b4', carModel: 'Hyundai Grand Starex #304', client: 'М - 2 суток', startDate: '2026-01-20', endDate: '2026-01-22', status: 'Занято', days: 2 },
-    { id: 'b5', carModel: 'Hyundai Grand Starex #670', client: 'М - 5 суток Д', startDate: '2026-01-20', endDate: '2026-01-25', status: 'Бронь', days: 5 },
-    { id: 'b6', carModel: 'Hyundai Grand Starex #826', client: 'М - 4 суток', startDate: '2026-01-24', endDate: '2026-01-28', status: 'Занято', days: 4 },
-    { id: 'b7', carModel: 'Hyundai Grand Starex #080', client: 'О - 3 суток Д', startDate: '2026-01-20', endDate: '2026-01-23', status: 'Бронь', days: 3 },
-    { id: 'b8', carModel: 'Hyundai Grand Starex #194', client: 'О - 2 суток', startDate: '2026-01-24', endDate: '2026-01-26', status: 'Занято', days: 2 },
-    { id: 'b9', carModel: 'Hyundai Grand Starex #939', client: 'В аренде весь месяц', startDate: '2026-01-01', endDate: '2026-01-31', status: 'В аренде', days: 30 },
-    { id: 'b10', carModel: 'Hyundai Grand Starex #609', client: 'О - 4 суток → К', startDate: '2026-01-17', endDate: '2026-01-21', status: 'Занято', days: 4 },
-    { id: 'b11', carModel: 'Honda Stepwgn #763', client: 'Клиент → Краснодар', startDate: '2026-01-16', endDate: '2026-01-17', status: 'Вишлист', days: 1 },
-    { id: 'b12', carModel: 'Hyundai Grand Starex #485', client: 'К - 3 суток', startDate: '2026-01-27', endDate: '2026-01-30', status: 'Занято', days: 3 },
-  ];
 
   const branches = [
     { id: 'all', name: 'Все города — 16 авто' },
@@ -85,14 +102,45 @@ export const CalendarSection = () => {
   ];
 
   const getBookingStyle = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       'Занято': 'bg-blue-500',
       'Бронь': 'bg-green-500',
       'В аренде': 'bg-orange-500',
       'Вишлист': 'bg-purple-400',
+      'Завершено': 'bg-gray-400',
+      'Отменено': 'bg-red-400',
     };
-    return styles[status as keyof typeof styles] || 'bg-gray-400';
+    return styles[status] || 'bg-gray-400';
   };
+
+  const getCarBookings = (car: string, day: Date) => {
+    return bookings.filter(booking => {
+      const carName = booking.vehicle_model 
+        ? `${booking.vehicle_model} #${booking.vehicle_license_plate?.slice(-3)}` 
+        : car;
+      
+      if (!carName.includes(car) && !car.includes(carName.split(' #')[0])) {
+        return false;
+      }
+      
+      if (!showWishlist && booking.status === 'Вишлист') {
+        return false;
+      }
+      
+      const startDate = parseISO(booking.start_date);
+      const endDate = parseISO(booking.end_date);
+      
+      return day >= startDate && day <= endDate;
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Icon name="Loader2" className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   const isWeekend = (date: Date) => {
     const day = date.getDay();
@@ -102,16 +150,21 @@ export const CalendarSection = () => {
   const getBookingForCarAndDate = (carModel: string, date: Date) => {
     return bookings.find(booking => {
       if (booking.status === 'Вишлист' && !showWishlist) return false;
-      if (booking.carModel !== carModel) return false;
       
-      const start = parseISO(booking.startDate);
-      const end = parseISO(booking.endDate);
+      const carName = booking.vehicle_model 
+        ? `${booking.vehicle_model} #${booking.vehicle_license_plate?.slice(-3)}` 
+        : '';
+      
+      if (carName !== carModel) return false;
+      
+      const start = parseISO(booking.start_date);
+      const end = parseISO(booking.end_date);
       return date >= start && date <= end;
     });
   };
 
   const isBookingStart = (booking: Booking, date: Date) => {
-    return isSameDay(parseISO(booking.startDate), date);
+    return isSameDay(parseISO(booking.start_date), date);
   };
 
   return (
@@ -230,7 +283,7 @@ export const CalendarSection = () => {
                                     zIndex: 10,
                                   }}
                                 >
-                                  {booking.client}
+                                  {booking.client_name}
                                 </div>
                               )}
                             </div>

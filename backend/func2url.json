@@ -1,4 +1,5 @@
 {
+  "bookings": "https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142",
   "vehicles-admin": "https://functions.poehali.dev/c1620ea4-c9a8-4c0e-bb5b-5820d4042dfa",
   "avito-oauth-callback": "https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe",
   "avito-messages": "https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d",
