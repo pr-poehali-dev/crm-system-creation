@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,8 @@ interface LoginPageProps {
 }
 
 const USERS = {
-  nikita: { password: 'nikita2026', name: 'Никита', role: 'Генеральный директор' },
-  marina: { password: 'marina2026', name: 'Марина', role: 'Генеральный директор' },
+  nikita: { password: 'bibi0455584', name: 'Никита', role: 'Генеральный директор' },
+  marina: { password: 'bibi2858216', name: 'Марина', role: 'Генеральный директор' },
 };
 
 export const LoginPage = ({ onLogin }: LoginPageProps) => {
@@ -37,6 +37,9 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
       const user = USERS[username.toLowerCase() as keyof typeof USERS];
       
       if (user && user.password === password) {
+        localStorage.setItem('crm_saved_username', username.toLowerCase());
+        localStorage.setItem('crm_saved_password', password);
+        
         toast({
           title: "Успешный вход",
           description: `Добро пожаловать, ${user.name}!`,
@@ -67,10 +70,15 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     }, 800);
   };
 
-  const handleQuickLogin = (userKey: keyof typeof USERS) => {
-    setUsername(userKey);
-    setPassword(USERS[userKey].password);
-  };
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('crm_saved_username');
+    const savedPassword = localStorage.getItem('crm_saved_password');
+    
+    if (savedUsername && savedPassword) {
+      setUsername(savedUsername);
+      setPassword(savedPassword);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-sidebar/30 flex items-center justify-center p-4">
@@ -95,7 +103,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
               <Label htmlFor="username">Логин</Label>
               <Input
                 id="username"
-                placeholder="nikita или marina"
+                placeholder="Введите логин"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -145,45 +153,6 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
               )}
             </Button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Быстрый вход</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              onClick={() => handleQuickLogin('nikita')}
-              className="h-auto py-4 flex-col gap-2"
-            >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Icon name="User" size={20} className="text-primary" />
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Никита</div>
-                <div className="text-xs text-muted-foreground">Ген. директор</div>
-              </div>
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => handleQuickLogin('marina')}
-              className="h-auto py-4 flex-col gap-2"
-            >
-              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                <Icon name="User" size={20} className="text-secondary" />
-              </div>
-              <div className="text-center">
-                <div className="font-medium">Марина</div>
-                <div className="text-xs text-muted-foreground">Ген. директор</div>
-              </div>
-            </Button>
-          </div>
 
           <Card className="bg-info/10 border-info/30">
             <CardContent className="pt-4 pb-4">
