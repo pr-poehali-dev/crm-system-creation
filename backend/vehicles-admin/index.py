@@ -41,7 +41,7 @@ def handler(event, context):
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
         
-        params = event.get('queryStringParameters', {})
+        params = event.get('queryStringParameters') or {}
         action = params.get('action', 'delete')
         
         if action == 'clear':
