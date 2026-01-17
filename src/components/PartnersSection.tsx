@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,12 +60,15 @@ interface Partner {
   created_at: string;
 }
 
+const PARTNERS_API = 'https://functions.poehali.dev/715bfefb-5b6e-4181-b7c3-cf241c6c067f';
+
 export const PartnersSection = () => {
   const { toast } = useToast();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState<Partial<Partner>>({
     type: 'subrent',
@@ -73,6 +76,28 @@ export const PartnersSection = () => {
     services: [],
     documents: [],
   });
+
+  useEffect(() => {
+    loadPartners();
+  }, []);
+
+  const loadPartners = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(PARTNERS_API);
+      const data = await response.json();
+      setPartners(data.partners || []);
+    } catch (error) {
+      console.error('Error loading partners:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить список партнёров",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const updateFormData = (key: string, value: any) => {
     setFormData({ ...formData, [key]: value });
@@ -114,7 +139,7 @@ export const PartnersSection = () => {
     updateFormData('services', updated);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.company_name || !formData.contact_person || !formData.phone) {
       toast({
         title: 'Ошибка',
@@ -124,23 +149,33 @@ export const PartnersSection = () => {
       return;
     }
 
-    const newPartner: Partner = {
-      id: editingPartner?.id || Date.now().toString(),
-      ...formData as Partner,
-      created_at: editingPartner?.created_at || new Date().toISOString(),
-    };
-
-    if (editingPartner) {
-      setPartners(partners.map(p => p.id === editingPartner.id ? newPartner : p));
-      toast({ title: 'Партнёр обновлён' });
-    } else {
-      setPartners([...partners, newPartner]);
-      toast({ title: 'Партнёр добавлен' });
+    try {
+      const method = editingPartner ? 'PUT' : 'POST';
+      const body = editingPartner ? { ...formData, id: editingPartner.id } : formData;
+      
+      const response = await fetch(PARTNERS_API, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      
+      if (!response.ok) throw new Error('Failed to save partner');
+      
+      toast({ title: editingPartner ? 'Партнёр обновлён' : 'Партнёр добавлен' });
+      
+      setIsFormOpen(false);
+      setEditingPartner(null);
+      setFormData({ type: 'subrent', vehicles: [], services: [], documents: [] });
+      
+      await loadPartners();
+    } catch (error) {
+      console.error('Error saving partner:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить партнёра',
+        variant: 'destructive',
+      });
     }
-
-    setIsFormOpen(false);
-    setEditingPartner(null);
-    setFormData({ type: 'subrent', vehicles: [], services: [], documents: [] });
   };
 
   const handleEdit = (partner: Partner) => {

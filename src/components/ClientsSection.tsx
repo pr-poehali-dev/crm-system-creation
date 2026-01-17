@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,8 @@ interface ClientsSectionProps {
   autoOpenAdd?: boolean;
 }
 
+const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57';
+
 export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectionProps = {}) => {
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
@@ -39,6 +41,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(autoOpenAdd || false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const [newClient, setNewClient] = useState({
     name: initialClientData?.name || '',
@@ -58,6 +61,28 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
   const [licensePhoto, setLicensePhoto] = useState<string | null>(null);
 
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  const loadClients = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(CLIENTS_API);
+      const data = await response.json();
+      setClients(data.clients || []);
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить список клиентов",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleFileUpload = (file: File, type: 'passport' | 'license') => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -75,7 +100,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     reader.readAsDataURL(file);
   };
 
-  const handleAddClient = () => {
+  const handleAddClient = async () => {
     if (!newClient.name || !newClient.phone) {
       toast({
         title: "Ошибка",
@@ -85,35 +110,49 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
       return;
     }
 
-    const client: Client = {
-      id: Date.now(),
-      ...newClient,
-      created_at: new Date().toISOString()
-    };
+    try {
+      const response = await fetch(CLIENTS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newClient)
+      });
+      
+      if (!response.ok) throw new Error('Failed to add client');
+      
+      const data = await response.json();
+      
+      setIsAddDialogOpen(false);
+      setNewClient({
+        name: '',
+        phone: '',
+        email: '',
+        passport_series: '',
+        passport_number: '',
+        passport_issued_by: '',
+        passport_issued_date: '',
+        address: '',
+        birth_date: '',
+        driver_license: '',
+        license_issued_date: '',
+        notes: ''
+      });
+      setPassportPhoto(null);
+      setLicensePhoto(null);
 
-    setClients([...clients, client]);
-    setIsAddDialogOpen(false);
-    setNewClient({
-      name: '',
-      phone: '',
-      email: '',
-      passport_series: '',
-      passport_number: '',
-      passport_issued_by: '',
-      passport_issued_date: '',
-      address: '',
-      birth_date: '',
-      driver_license: '',
-      license_issued_date: '',
-      notes: ''
-    });
-    setPassportPhoto(null);
-    setLicensePhoto(null);
-
-    toast({
-      title: "Клиент добавлен",
-      description: `${client.name} успешно добавлен в базу`,
-    });
+      toast({
+        title: "Клиент добавлен",
+        description: `${newClient.name} успешно добавлен в базу`,
+      });
+      
+      await loadClients();
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось добавить клиента",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredClients = clients.filter(client =>

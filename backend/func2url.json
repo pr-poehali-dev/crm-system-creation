@@ -1,7 +1,7 @@
 {
+  "partners": "https://functions.poehali.dev/715bfefb-5b6e-4181-b7c3-cf241c6c067f",
+  "clients": "https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57",
   "bookings": "https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142",
   "vehicles-admin": "https://functions.poehali.dev/c1620ea4-c9a8-4c0e-bb5b-5820d4042dfa",
-  "avito-oauth-callback": "https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe",
-  "avito-messages": "https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d",
   "vehicles": "https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f"
 }
