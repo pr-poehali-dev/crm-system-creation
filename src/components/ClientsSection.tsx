@@ -300,12 +300,6 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                           <span className="truncate">{client.email}</span>
                         </div>
                       )}
-                      {client.driver_license && (
-                        <div className="flex items-center gap-2">
-                          <Icon name="CreditCard" size={14} />
-                          <span>ВУ: {client.driver_license}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -313,19 +307,21 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                         variant="ghost"
                         size="sm"
                         className="flex-1"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedClient(client);
                           setIsDetailDialogOpen(true);
                         }}
                       >
-                        <Icon name="Edit" size={14} className="mr-1" />
-                        Редактировать
+                        <Icon name="Eye" size={14} className="mr-1" />
+                        Открыть
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           if (!confirm(`Удалить клиента ${client.name}?`)) return;
                           
                           try {
@@ -612,7 +608,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         </DialogContent>
       </Dialog>
 
-      {/* Диалог редактирования клиента */}
+      {/* Диалог клиента с вкладками */}
       <Dialog open={isDetailDialogOpen} onOpenChange={(open) => {
         setIsDetailDialogOpen(open);
         if (open && selectedClient) {
@@ -621,17 +617,39 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
           setEditClient(null);
         }
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {editClient && (
             <>
               <DialogHeader>
-                <DialogTitle>Редактировать клиента</DialogTitle>
-                <DialogDescription>
-                  Внесите изменения в данные клиента
-                </DialogDescription>
+                <DialogTitle className="flex items-center justify-between">
+                  <div>
+                    <div className="text-lg font-bold">{editClient.name}</div>
+                    <div className="text-sm text-muted-foreground font-normal">{editClient.phone}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-primary to-secondary"
+                    onClick={() => {
+                      // Здесь открываем форму создания заказа с предзаполненными данными клиента
+                      setIsDetailDialogOpen(false);
+                      // TODO: Открыть BookingWizard с данными клиента
+                    }}
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Создать заказ
+                  </Button>
+                </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-4 py-4">
+              <Tabs defaultValue="info" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="info">Информация</TabsTrigger>
+                  <TabsTrigger value="orders">История заказов</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="info" className="space-y-4 mt-4">
+
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2 space-y-2">
                     <Label>ФИО *</Label>
@@ -717,53 +735,71 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                     />
                   </div>
                 </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary"
+                    onClick={async () => {
+                      if (!editClient.name || !editClient.phone) {
+                        toast({
+                          title: "Ошибка",
+                          description: "Заполните обязательные поля: ФИО и телефон",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch(CLIENTS_API, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(editClient)
+                        });
+                        
+                        if (!response.ok) throw new Error('Failed to update client');
+                        
+                        toast({
+                          title: "✅ Клиент обновлён",
+                          description: `Данные ${editClient.name} успешно обновлены`,
+                        });
+                        
+                        await loadClients();
+                      } catch (error) {
+                        toast({
+                          title: "Ошибка",
+                          description: "Не удалось обновить клиента",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <Icon name="Save" size={18} className="mr-2" />
+                    Сохранить изменения
+                  </Button>
+                </div>
               </div>
+              </TabsContent>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                  Отмена
-                </Button>
-                <Button 
-                  className="bg-gradient-to-r from-primary to-secondary"
-                  onClick={async () => {
-                    if (!editClient.name || !editClient.phone) {
-                      toast({
-                        title: "Ошибка",
-                        description: "Заполните обязательные поля: ФИО и телефон",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-
-                    try {
-                      const response = await fetch(CLIENTS_API, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(editClient)
-                      });
-                      
-                      if (!response.ok) throw new Error('Failed to update client');
-                      
-                      setIsDetailDialogOpen(false);
-                      toast({
-                        title: "✅ Клиент обновлён",
-                        description: `Данные ${editClient.name} успешно обновлены`,
-                      });
-                      
-                      await loadClients();
-                    } catch (error) {
-                      toast({
-                        title: "Ошибка",
-                        description: "Не удалось обновить клиента",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                >
-                  <Icon name="Save" size={18} className="mr-2" />
-                  Сохранить
-                </Button>
-              </DialogFooter>
+              <TabsContent value="orders" className="space-y-3 mt-4">
+                <div className="space-y-3">
+                  {/* Здесь будет список заказов клиента */}
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Icon name="Package" size={48} className="mx-auto mb-4 opacity-50" />
+                    <p className="mb-2">У клиента пока нет заказов</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsDetailDialogOpen(false);
+                        // TODO: Открыть форму создания заказа
+                      }}
+                    >
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Создать первый заказ
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
             </>
           )}
         </DialogContent>
