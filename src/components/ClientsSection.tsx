@@ -43,6 +43,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(autoOpenAdd || false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [editClient, setEditClient] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -307,14 +308,51 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                       )}
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      Подробнее
-                      <Icon name="ChevronRight" size={16} className="ml-2" />
-                    </Button>
+                    <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsDetailDialogOpen(true);
+                        }}
+                      >
+                        <Icon name="Edit" size={14} className="mr-1" />
+                        Редактировать
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={async () => {
+                          if (!confirm(`Удалить клиента ${client.name}?`)) return;
+                          
+                          try {
+                            const response = await fetch(`${CLIENTS_API}?id=${client.id}`, {
+                              method: 'DELETE'
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to delete');
+                            
+                            toast({
+                              title: "Клиент удалён",
+                              description: `${client.name} удалён из базы`,
+                            });
+                            
+                            await loadClients();
+                          } catch (error) {
+                            toast({
+                              title: "Ошибка",
+                              description: "Не удалось удалить клиента",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -574,116 +612,156 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         </DialogContent>
       </Dialog>
 
-      {/* Диалог деталей клиента */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          {selectedClient && (
+      {/* Диалог редактирования клиента */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={(open) => {
+        setIsDetailDialogOpen(open);
+        if (open && selectedClient) {
+          setEditClient(selectedClient);
+        } else {
+          setEditClient(null);
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {editClient && (
             <>
               <DialogHeader>
-                <DialogTitle>{selectedClient.name}</DialogTitle>
+                <DialogTitle>Редактировать клиента</DialogTitle>
                 <DialogDescription>
-                  Информация о клиенте
+                  Внесите изменения в данные клиента
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Контактная информация</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Телефон:</span>
-                      <span className="font-medium">{selectedClient.phone}</span>
-                    </div>
-                    {selectedClient.email && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Email:</span>
-                        <span className="font-medium">{selectedClient.email}</span>
-                      </div>
-                    )}
-                    {selectedClient.address && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Адрес:</span>
-                        <span className="font-medium text-right">{selectedClient.address}</span>
-                      </div>
-                    )}
-                    {selectedClient.birth_date && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Дата рождения:</span>
-                        <span className="font-medium">{new Date(selectedClient.birth_date).toLocaleDateString('ru-RU')}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-2">
+                    <Label>ФИО *</Label>
+                    <Input
+                      value={editClient.name || ''}
+                      onChange={(e) => setEditClient({ ...editClient, name: e.target.value })}
+                    />
+                  </div>
 
-                {(selectedClient.passport_series || selectedClient.passport_number) && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Паспортные данные</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Серия и номер:</span>
-                        <span className="font-medium">
-                          {selectedClient.passport_series} {selectedClient.passport_number}
-                        </span>
-                      </div>
-                      {selectedClient.passport_issued_by && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Кем выдан:</span>
-                          <span className="font-medium text-right">{selectedClient.passport_issued_by}</span>
-                        </div>
-                      )}
-                      {selectedClient.passport_issued_date && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Дата выдачи:</span>
-                          <span className="font-medium">{new Date(selectedClient.passport_issued_date).toLocaleDateString('ru-RU')}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                  <div className="space-y-2">
+                    <Label>Телефон *</Label>
+                    <Input
+                      value={editClient.phone || ''}
+                      onChange={(e) => setEditClient({ ...editClient, phone: e.target.value })}
+                    />
+                  </div>
 
-                {selectedClient.driver_license && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Водительское удостоверение</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Номер ВУ:</span>
-                        <span className="font-medium">{selectedClient.driver_license}</span>
-                      </div>
-                      {selectedClient.license_issued_date && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Дата выдачи:</span>
-                          <span className="font-medium">{new Date(selectedClient.license_issued_date).toLocaleDateString('ru-RU')}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={editClient.email || ''}
+                      onChange={(e) => setEditClient({ ...editClient, email: e.target.value })}
+                    />
+                  </div>
 
-                {selectedClient.notes && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Заметки</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">{selectedClient.notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
+                  <div className="space-y-2">
+                    <Label>Дата рождения</Label>
+                    <Input
+                      type="date"
+                      value={editClient.birth_date || ''}
+                      onChange={(e) => setEditClient({ ...editClient, birth_date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Адрес</Label>
+                    <Input
+                      value={editClient.address || ''}
+                      onChange={(e) => setEditClient({ ...editClient, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Паспорт (серия)</Label>
+                    <Input
+                      value={editClient.passport_series || ''}
+                      onChange={(e) => setEditClient({ ...editClient, passport_series: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Паспорт (номер)</Label>
+                    <Input
+                      value={editClient.passport_number || ''}
+                      onChange={(e) => setEditClient({ ...editClient, passport_number: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Водительское удостоверение</Label>
+                    <Input
+                      value={editClient.driver_license || ''}
+                      onChange={(e) => setEditClient({ ...editClient, driver_license: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Дата выдачи ВУ</Label>
+                    <Input
+                      type="date"
+                      value={editClient.license_issued_date || ''}
+                      onChange={(e) => setEditClient({ ...editClient, license_issued_date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-2">
+                    <Label>Заметки</Label>
+                    <Textarea
+                      value={editClient.notes || ''}
+                      onChange={(e) => setEditClient({ ...editClient, notes: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                </div>
               </div>
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                  Закрыть
+                  Отмена
                 </Button>
-                <Button className="bg-gradient-to-r from-primary to-secondary">
-                  <Icon name="Edit" size={18} className="mr-2" />
-                  Редактировать
+                <Button 
+                  className="bg-gradient-to-r from-primary to-secondary"
+                  onClick={async () => {
+                    if (!editClient.name || !editClient.phone) {
+                      toast({
+                        title: "Ошибка",
+                        description: "Заполните обязательные поля: ФИО и телефон",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    try {
+                      const response = await fetch(CLIENTS_API, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(editClient)
+                      });
+                      
+                      if (!response.ok) throw new Error('Failed to update client');
+                      
+                      setIsDetailDialogOpen(false);
+                      toast({
+                        title: "✅ Клиент обновлён",
+                        description: `Данные ${editClient.name} успешно обновлены`,
+                      });
+                      
+                      await loadClients();
+                    } catch (error) {
+                      toast({
+                        title: "Ошибка",
+                        description: "Не удалось обновить клиента",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                >
+                  <Icon name="Save" size={18} className="mr-2" />
+                  Сохранить
                 </Button>
               </DialogFooter>
             </>

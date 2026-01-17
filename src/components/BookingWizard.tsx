@@ -43,6 +43,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   });
   const [clients, setClients] = useState<any[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const additionalServices = [
     { id: 'transponder', name: 'Транспондер', price: 500 },
@@ -58,10 +59,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
   // Автосохранение при каждом изменении bookingData
   useEffect(() => {
-    if (!vehicle) return; // Не сохраняем пустую форму
+    if (!vehicle) return;
     
     const saveBooking = async () => {
       try {
+        setSaveStatus('saving');
         await fetch(BOOKINGS_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -76,12 +78,15 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
             status: 'Черновик',
           })
         });
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } catch (error) {
         console.error('Ошибка автосохранения:', error);
+        setSaveStatus('error');
       }
     };
 
-    const timeoutId = setTimeout(saveBooking, 1000); // Debounce 1 секунда
+    const timeoutId = setTimeout(saveBooking, 1000);
     return () => clearTimeout(timeoutId);
   }, [bookingData]);
 
@@ -213,8 +218,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div>
-              <div className="text-xl">
+              <div className="text-xl flex items-center gap-2">
                 Заявка на бронь {vehicle ? `${vehicle.model} #${vehicle.license_plate.slice(-3)}` : ''}
+                {saveStatus === 'saving' && <span className="text-xs text-blue-500">💾 Сохранение...</span>}
+                {saveStatus === 'saved' && <span className="text-xs text-green-500">✓ Сохранено</span>}
+                {saveStatus === 'error' && <span className="text-xs text-red-500">⚠ Ошибка</span>}
               </div>
               {startDate && endDate && (
                 <div className="text-sm text-muted-foreground mt-1">
