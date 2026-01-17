@@ -478,7 +478,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                     searchClientByName(fullName);
                   }}
                 />
-                {isLoadingClients && <p className=\"text-xs text-blue-600\">🔍 Поиск клиента в базе...</p>}
+                {isLoadingClients && <p className="text-xs text-blue-600">🔍 Поиск клиента в базе...</p>}
               </div>
 
               <div className="space-y-2">
