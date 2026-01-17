@@ -402,14 +402,73 @@ export const IntegrationsPage = () => {
                     </TabsContent>
 
                     <TabsContent value="help" className="space-y-4 mt-4">
-                      <div className="space-y-3 text-sm">
-                        <p className="font-medium">Как получить Client ID и Secret:</p>
-                        <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                          <li>Зайдите на <a href="https://developers.avito.ru" target="_blank" className="text-primary hover:underline">developers.avito.ru</a></li>
-                          <li>Создайте новое приложение</li>
-                          <li>Скопируйте Client ID и Client Secret</li>
-                          <li>Вставьте их в соответствующие поля</li>
-                        </ol>
+                      <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                              <Icon name="AlertCircle" size={24} className="text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-2">Перед подключением!</h4>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Чтобы кнопка "Подключить Avito" заработала, сначала добавьте Redirect URI в настройках вашего приложения на Avito.
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="space-y-4">
+                        <div className="space-y-3 text-sm">
+                          <p className="font-semibold text-base">Шаг 1: Добавьте Redirect URI на Avito</p>
+                          <ol className="list-decimal list-inside space-y-3 text-muted-foreground pl-2">
+                            <li>
+                              Откройте страницу вашего приложения:{" "}
+                              <a 
+                                href="https://autoload.avito.ru/applications" 
+                                target="_blank" 
+                                className="text-primary hover:underline font-medium"
+                              >
+                                autoload.avito.ru/applications
+                              </a>
+                            </li>
+                            <li>
+                              Найдите поле <strong>"Redirect URI"</strong> (URL переадресации)
+                            </li>
+                            <li>
+                              Скопируйте и вставьте туда эту ссылку:
+                              <div className="mt-2 p-3 bg-muted rounded-lg border font-mono text-xs break-all">
+                                https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mt-2"
+                                onClick={() => {
+                                  navigator.clipboard.writeText('https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe');
+                                  toast({
+                                    title: "Скопировано!",
+                                    description: "Redirect URI скопирован в буфер обмена",
+                                  });
+                                }}
+                              >
+                                <Icon name="Copy" size={16} className="mr-2" />
+                                Скопировать ссылку
+                              </Button>
+                            </li>
+                            <li>Нажмите <strong>"Сохранить"</strong> на странице приложения Avito</li>
+                          </ol>
+                        </div>
+
+                        <div className="space-y-3 text-sm pt-4 border-t">
+                          <p className="font-semibold text-base">Шаг 2: Подключите Avito к CRM</p>
+                          <ol className="list-decimal list-inside space-y-2 text-muted-foreground pl-2" start={5}>
+                            <li>Вернитесь на вкладку <strong>"Доступы"</strong></li>
+                            <li>Нажмите кнопку <strong>"Подключить Avito"</strong></li>
+                            <li>Разрешите доступ к вашему аккаунту</li>
+                            <li>Готово! Все диалоги загрузятся автоматически</li>
+                          </ol>
+                        </div>
                       </div>
                     </TabsContent>
                   </Tabs>
