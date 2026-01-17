@@ -41,7 +41,11 @@ interface Booking {
 
 const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
 
-export const CalendarSection = () => {
+interface CalendarSectionProps {
+  onOpenBookingWizard?: () => void;
+}
+
+export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = {}) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
@@ -183,7 +187,10 @@ export const CalendarSection = () => {
                 <span>Календарь</span>
               </div>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14">
+            <Button 
+              className="bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14"
+              onClick={() => onOpenBookingWizard?.()}
+            >
               <Icon name="Plus" size={24} />
             </Button>
           </div>

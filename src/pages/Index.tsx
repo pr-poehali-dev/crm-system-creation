@@ -995,62 +995,10 @@ const Index = () => {
           )}
 
           {activeSection === 'clients' && (
-            <Card className="bg-card/50 backdrop-blur border-border/50 animate-scale-in">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="Users" size={24} className="text-primary" />
-                    База клиентов
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    <Input placeholder="Поиск по имени или телефону..." className="w-80" />
-                    <Button className="bg-gradient-to-r from-primary to-secondary">
-                      <Icon name="Plus" size={18} className="mr-2" />
-                      Добавить клиента
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[].map((client: any) => (
-                    <div key={client.id} className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-                            {client.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex-1 grid grid-cols-4 gap-4">
-                            <div>
-                              <div className="text-sm text-muted-foreground">Клиент</div>
-                              <div className="font-medium">{client.name}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Телефон / Email</div>
-                              <div className="font-medium text-sm">{client.phone}</div>
-                              <div className="text-sm text-muted-foreground">{client.email}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Заказов</div>
-                              <div className="font-medium">{client.orders}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm text-muted-foreground">Баланс</div>
-                              <div className={cn('font-bold text-lg', client.balance >= 0 ? 'text-success' : 'text-destructive')}>
-                                {client.balance >= 0 ? '+' : ''}₽{client.balance.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Icon name="ChevronRight" size={20} />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <ClientsSection 
+              initialClientData={clientDataFromLead || undefined}
+              autoOpenAdd={!!clientDataFromLead}
+            />
           )}
 
           {activeSection === 'fleet' && (
@@ -1230,7 +1178,11 @@ const Index = () => {
             />
           )}
 
-          {activeSection === 'calendar' && <CalendarSection />}
+          {activeSection === 'calendar' && (
+            <CalendarSection 
+              onOpenBookingWizard={() => setIsBookingWizardOpen(true)}
+            />
+          )}
 
           {activeSection === 'services' && <ServicesSection />}
 

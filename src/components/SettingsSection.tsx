@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 
 export const SettingsSection = () => {
+  const { toast } = useToast();
+  const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    position: '',
+    phone: '',
+    email: '',
+    balance: 0
+  });
+  
   const employees = [
     { id: 1, name: 'Иванов Иван', position: 'Мастер', phone: '+7 (999) 111-11-11', email: 'ivanov@rf.ru', balance: 25000, active: true },
     { id: 2, name: 'Петрова Анна', position: 'Менеджер', phone: '+7 (999) 222-22-22', email: 'petrova@rf.ru', balance: 35000, active: true },
@@ -85,7 +98,10 @@ export const SettingsSection = () => {
           <TabsContent value="employees" className="space-y-4 mt-6">
             <div className="flex justify-between items-center mb-4">
               <div className="text-sm text-muted-foreground">Всего сотрудников: {employees.length}</div>
-              <Button className="bg-gradient-to-r from-primary to-secondary">
+              <Button 
+                className="bg-gradient-to-r from-primary to-secondary"
+                onClick={() => setIsAddEmployeeOpen(true)}
+              >
                 <Icon name="UserPlus" size={18} className="mr-2" />
                 Добавить сотрудника
               </Button>
@@ -183,6 +199,99 @@ export const SettingsSection = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <Dialog open={isAddEmployeeOpen} onOpenChange={setIsAddEmployeeOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="UserPlus" size={24} className="text-primary" />
+              Добавить сотрудника
+            </DialogTitle>
+            <DialogDescription>
+              Заполните данные нового сотрудника
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>ФИО *</Label>
+                <Input 
+                  placeholder="Иванов Иван Иванович"
+                  value={newEmployee.name}
+                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Должность *</Label>
+                <Input 
+                  placeholder="Менеджер"
+                  value={newEmployee.position}
+                  onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Телефон *</Label>
+                <Input 
+                  placeholder="+7 (999) 123-45-67"
+                  value={newEmployee.phone}
+                  onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email *</Label>
+                <Input 
+                  type="email"
+                  placeholder="email@example.com"
+                  value={newEmployee.email}
+                  onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Начальный баланс (₽)</Label>
+              <Input 
+                type="number"
+                placeholder="0"
+                value={newEmployee.balance}
+                onChange={(e) => setNewEmployee({...newEmployee, balance: parseFloat(e.target.value) || 0})}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddEmployeeOpen(false)}>
+              Отмена
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-primary to-secondary"
+              onClick={() => {
+                if (!newEmployee.name || !newEmployee.position || !newEmployee.phone || !newEmployee.email) {
+                  toast({
+                    title: 'Ошибка',
+                    description: 'Заполните все обязательные поля',
+                    variant: 'destructive'
+                  });
+                  return;
+                }
+                toast({
+                  title: '✅ Сотрудник добавлен',
+                  description: `${newEmployee.name} успешно добавлен в систему`
+                });
+                setIsAddEmployeeOpen(false);
+                setNewEmployee({ name: '', position: '', phone: '', email: '', balance: 0 });
+              }}
+            >
+              <Icon name="Save" size={18} className="mr-2" />
+              Добавить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

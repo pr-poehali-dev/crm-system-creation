@@ -215,7 +215,7 @@ export const LeadsSection = ({ onConvertToClient, onOpenDetailForm }: LeadsSecti
               </Button>
               <Button 
                 className="bg-gradient-to-r from-primary to-secondary"
-                onClick={() => onOpenDetailForm?.()}
+                onClick={() => setIsAddLeadOpen(true)}
               >
                 <Icon name="UserPlus" size={18} className="mr-2" />
                 Создать лида
