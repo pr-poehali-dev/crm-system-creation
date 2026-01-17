@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Test loading Avito messages",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "count": "number",
+        "leads": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -51,13 +51,52 @@ export const LeadsSection = () => {
         description: "Получаем новые сообщения...",
       });
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch(
+        'https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d?' + 
+        new URLSearchParams({
+          client_id: 'VzbKJ5EdJ2AYmep_vm_v',
+          client_secret: 'izyN_j0WXoT6iEUnIwMQsynqGDndAuuHkAxwveyV',
+          user_id: '393750909'
+        })
+      );
       
-      toast({
-        title: "Диалоги загружены",
-        description: "Все новые сообщения из Avito добавлены в лиды",
-      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.leads) {
+        // Форматируем даты для отображения
+        const formattedLeads = data.leads.map((lead: any) => ({
+          ...lead,
+          created: new Date(lead.created).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          lastActivity: new Date(lead.lastActivity).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }));
+        
+        setLeads(formattedLeads);
+        
+        toast({
+          title: "Диалоги загружены",
+          description: `Загружено ${data.count} ${data.count === 1 ? 'сообщение' : 'сообщений'} из Avito`,
+        });
+      } else {
+        throw new Error('Неверный формат ответа');
+      }
     } catch (error) {
+      console.error('Avito loading error:', error);
       toast({
         title: "Ошибка загрузки",
         description: "Не удалось загрузить диалоги из Avito. Проверьте настройки интеграции.",
