@@ -75,7 +75,7 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
       
       const data = await response.json();
       
-      if (data.success) {
+      if (data.success && data.leads) {
         // Форматируем даты для отображения
         const formattedLeads = data.leads.map((lead: any) => ({
           ...lead,
@@ -97,17 +97,16 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
         
         setLeads(formattedLeads);
         
-        if (data.count === 0) {
-          toast({
-            title: "Ручной режим работы",
-            description: data.message || "Добавляйте диалоги из Avito вручную через кнопку 'Добавить диалог вручную'",
-          });
-        } else {
-          toast({
-            title: "Диалоги загружены",
-            description: `Загружено ${data.count} диалогов с Avito`,
-          });
-        }
+        toast({
+          title: "ВСЕ диалоги загружены!",
+          description: `Загружено ${data.count} диалогов с Avito (включая старые). Обработайте нужные и переведите в клиенты`,
+        });
+      } else if (!data.success && data.error) {
+        toast({
+          title: data.error,
+          description: data.hint || 'Проверьте настройки API или используйте ручной импорт',
+          variant: 'destructive',
+        });
       } else {
         throw new Error('Неверный формат ответа');
       }
@@ -200,17 +199,25 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
+                onClick={loadAvitoMessages}
+                disabled={isLoadingLeads}
+              >
+                <Icon name="Download" size={18} className="mr-2" />
+                {isLoadingLeads ? 'Загрузка...' : 'Загрузить ВСЕ с Avito'}
+              </Button>
+              <Button 
+                variant="outline"
                 onClick={() => setIsBulkImportOpen(true)}
               >
                 <Icon name="Upload" size={18} className="mr-2" />
-                Загрузить все диалоги
+                Ручной импорт
               </Button>
               <Button 
                 className="bg-gradient-to-r from-primary to-secondary"
                 onClick={() => setIsAddLeadOpen(true)}
               >
                 <Icon name="Plus" size={18} className="mr-2" />
-                Добавить один диалог
+                Добавить один
               </Button>
             </div>
           </div>
