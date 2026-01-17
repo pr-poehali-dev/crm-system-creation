@@ -31,32 +31,39 @@ const MobileNav = ({ activeSection, onNavigate, userName, userRole }: MobileNavP
   return (
     <>
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden mobile-bottom-nav bg-background border-t border-border">
-        <div className="grid grid-cols-5 h-16">
+      <div className="md:hidden mobile-bottom-nav bg-background/95 backdrop-blur-lg border-t border-border">
+        <div className="grid grid-cols-5 h-16 items-center">
           {mainItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 transition-colors',
+                'flex flex-col items-center justify-center gap-1 transition-all active:scale-95',
                 activeSection === item.id
                   ? 'text-primary'
-                  : 'text-muted-foreground'
+                  : 'text-muted-foreground active:text-foreground'
               )}
             >
-              <Icon name={item.icon as any} size={20} />
+              <div className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-xl transition-all',
+                activeSection === item.id && 'bg-primary/20'
+              )}>
+                <Icon name={item.icon as any} size={22} />
+              </div>
               <span className="text-[10px] font-medium">{item.label}</span>
             </button>
           ))}
           
           <Sheet>
             <SheetTrigger asChild>
-              <button className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
-                <Icon name="Menu" size={20} />
+              <button className="flex flex-col items-center justify-center gap-1 text-muted-foreground active:scale-95 transition-all">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl">
+                  <Icon name="Menu" size={22} />
+                </div>
                 <span className="text-[10px] font-medium">Ещё</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] sm:w-[340px]">
+            <SheetContent side="left" className="w-[85vw] max-w-[340px]">
               <SheetHeader>
                 <SheetTitle>Меню</SheetTitle>
                 <div className="py-2">

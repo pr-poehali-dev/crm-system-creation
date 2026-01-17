@@ -265,8 +265,8 @@ const Index = () => {
         userRole={userData.role}
       />
 
-      <main className="md:ml-20 mobile-main-content p-4 md:p-8">
-        <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-8 animate-fade-in">
+      <main className="md:ml-20 mobile-main-content p-3 sm:p-4 md:p-8 pb-24">
+        <div className="max-w-[1600px] mx-auto space-y-3 sm:space-y-4 md:space-y-8 animate-fade-in">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
@@ -683,13 +683,13 @@ const Index = () => {
               </Dialog>
 
           {activeSection === 'dashboard' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+            <div className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 <Card 
-                  className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer active:scale-95"
                   onClick={() => setActiveSection('leads')}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 md:pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Zap" size={18} className="text-purple-500" />
@@ -699,18 +699,18 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Icon name="Zap" size={32} className="mx-auto mb-2 opacity-50" />
+                    <div className="text-center py-4 md:py-6 text-muted-foreground">
+                      <Icon name="Zap" size={28} className="mx-auto mb-2 opacity-50 md:w-8 md:h-8" />
                       <p className="text-xs md:text-sm">Лидов пока нет</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card 
-                  className="bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  className="bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer active:scale-95"
                   onClick={() => setActiveSection('requests')}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 md:pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Users" size={20} className="text-orange-500" />
@@ -728,10 +728,10 @@ const Index = () => {
                 </Card>
 
                 <Card 
-                  className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer active:scale-95"
                   onClick={() => setActiveSection('calendar')}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 md:pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Clock" size={20} className="text-blue-500" />
@@ -750,10 +750,10 @@ const Index = () => {
                 </Card>
 
                 <Card 
-                  className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer active:scale-95"
                   onClick={() => setActiveSection('fleet')}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 md:pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Car" size={20} className="text-green-500" />
@@ -889,7 +889,7 @@ const Index = () => {
                 </Card>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 <Card className="bg-orange-100/30 border-orange-500/30">
                   <CardHeader className="flex flex-row items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
@@ -1048,7 +1048,7 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {isLoadingFleet ? (
                     <div className="col-span-2 text-center py-8 text-muted-foreground">
                       Загрузка автопарка...
@@ -1060,15 +1060,15 @@ const Index = () => {
                   ) : fleet.map((car) => (
                     <div 
                       key={car.id} 
-                      className="p-5 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
+                      className="p-4 sm:p-5 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group hover:scale-[1.02] active:scale-[0.98]"
                       onClick={() => {
                         setSelectedVehicle(car);
                         setIsVehicleDetailOpen(true);
                       }}
                     >
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start justify-between mb-3 sm:mb-4">
                         <div>
-                          <h3 className="text-lg font-bold">{car.model}</h3>
+                          <h3 className="text-base sm:text-lg font-bold">{car.model}</h3>
                           <p className="text-sm text-muted-foreground">{car.license_plate}</p>
                         </div>
                         <Badge className={cn('border', getStatusColor(car.status))}>
