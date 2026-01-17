@@ -7,6 +7,9 @@ def handler(event: dict, context) -> dict:
     """
     Загружает диалоги с клиентами из Avito и возвращает их как лиды для CRM
     """
+    # Логируем входящий запрос для отладки
+    print(f"Incoming request: method={event.get('httpMethod')}, headers={event.get('headers', {})}")
+    
     method = event.get('httpMethod', 'GET')
     
     # CORS
@@ -35,6 +38,8 @@ def handler(event: dict, context) -> dict:
     client_secret = os.environ.get('AVITO_CLIENT_SECRET')
     user_id = os.environ.get('AVITO_USER_ID')
     
+    print(f"Credentials check: client_id={'set' if client_id else 'missing'}, client_secret={'set' if client_secret else 'missing'}, user_id={'set' if user_id else 'missing'}")
+    
     if not client_id or not client_secret or not user_id:
         return {
             'statusCode': 400,
@@ -48,6 +53,7 @@ def handler(event: dict, context) -> dict:
     
     # Получаем access token
     try:
+        print(f"Getting Avito token...")
         token_response = requests.post(
             'https://api.avito.ru/token',
             data={
@@ -57,6 +63,8 @@ def handler(event: dict, context) -> dict:
             },
             timeout=10
         )
+        
+        print(f"Token response: status={token_response.status_code}")
         
         if token_response.status_code != 200:
             return {
