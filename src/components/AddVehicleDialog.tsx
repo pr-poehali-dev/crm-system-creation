@@ -16,22 +16,23 @@ interface AddVehicleDialogProps {
 
 export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) => {
   const { toast } = useToast();
-  const [vehicle, setVehicle] = useState({
-    model: '',
-    license_plate: '',
-    vin: '',
-    year: new Date().getFullYear(),
-    color: '',
-    seats: 7,
-    category: 'Микроавтобус',
+  
+  const getInitialVehicle = () => ({
+    model: 'HYUNDAI GRAND STAREX',
+    license_plate: 'О895ХН193',
+    vin: 'KMJWA37JBBU270500',
+    year: 2011,
+    color: 'Черный',
+    seats: 8,
+    category: 'В/М1',
     
     branch_id: 1,
     status: 'Свободен',
-    current_location: 'Гараж',
+    current_location: 'Офис',
     
     insurance_expires: '',
     tech_inspection_expires: '',
-    osago_number: '',
+    osago_number: '9970262810',
     kasko_number: '',
     
     last_service_date: '',
@@ -45,8 +46,10 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     rental_price_per_km: 15,
     sublease_cost: 0,
     
-    notes: '',
+    notes: 'Шасси (рама): ОТСУТСТВУЕТ\nКузов: KMJWA37JBBU270500\nМощность двигателя: 108.8 кВт / 147 л.с.\nСвидетельство о регистрации ТС: 9970262810\n\nСобственник: Малиночка Никита Дмитриевич\nПаспорт: 0319 547170\nВыдан: 22.05.2020 ГУ МВД России по Краснодарскому краю\nРегистрация: г. Хадыженск, ул. Колхозная, д. 48',
   });
+  
+  const [vehicle, setVehicle] = useState(getInitialVehicle());
 
   const [customFields, setCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
 
