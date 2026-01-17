@@ -546,6 +546,173 @@ const Index = () => {
                 </Card>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <Card className="bg-cyan-500/10 border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 hover:scale-105">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="CheckCircle" size={20} className="text-cyan-500" />
+                        <CardTitle className="text-lg">Аренда окончена</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-cyan-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground mb-4">На сумму 21 592 руб (2)</div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-cyan-600 text-white">7 100</Badge>
+                          <Badge variant="secondary" className="text-xs">В219УТ797</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Великий Кирилл → Москва</div>
+                          <div className="text-xs text-muted-foreground">01.07.2025 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">13.07.2025 10:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-cyan-600 text-white">88 000</Badge>
+                          <Badge variant="secondary" className="text-xs">К198ВЕ123</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Михайлов Вячеслав → Москва</div>
+                          <div className="text-xs text-muted-foreground">29.05.2024 20:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">11.06.2024 20:00 — Офис</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={20} className="text-blue-500" />
+                        <CardTitle className="text-lg">Сводные данные</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-blue-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">218 000</Badge>
+                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                            <Icon name="AlertCircle" size={12} />
+                            А194ЕЕ193
+                          </Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Яндиев Иван → Краснодар</div>
+                          <div className="text-xs text-muted-foreground">12.02.2026 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">15.01.2026 20:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">101 700</Badge>
+                          <Badge variant="secondary" className="text-xs">P828TY193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Мозолев Ирина → Москва</div>
+                          <div className="text-xs text-muted-foreground">12.06.2026 15:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">27.06.2026 15:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">96 900</Badge>
+                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Самуилов Алексей → Санкт-Петербург</div>
+                          <div className="text-xs text-muted-foreground">09.07.2026 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">26.07.2026 10:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-600 text-white">96 300</Badge>
+                          <Badge variant="secondary" className="text-xs">О304СВ193</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Аменицко Артур → Москва</div>
+                          <div className="text-xs text-muted-foreground">20.08.2026 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">31.08.2026 10:00 — Офис</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon name="TrendingUp" size={20} className="text-green-500" />
+                        <CardTitle className="text-lg">Доставки</CardTitle>
+                      </div>
+                      <Icon name="ChevronLeft" size={20} className="text-green-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">47 000</Badge>
+                          <Badge variant="secondary" className="text-xs">В118ВС777</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Богун Владислав → Москва</div>
+                          <div className="text-xs text-muted-foreground">14.01.2026 20:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">19.01.2026 10:00 — Офис</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">35 000</Badge>
+                          <Badge variant="secondary" className="text-xs">К609АМ977</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Яндиев Дмитрий → Санкт-Петербург</div>
+                          <div className="text-xs text-muted-foreground">15.01.2026 10:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">19.01.2026 10:00 — Доставка</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">35 000</Badge>
+                          <Badge variant="secondary" className="text-xs">Н692АН126</Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Будников Евгений → Краснодар</div>
+                          <div className="text-xs text-muted-foreground">16.01.2026 10:00 — Доставка</div>
+                          <div className="text-xs text-muted-foreground">19.01.2026 10:00 — Доставка</div>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-600 text-white">38 800</Badge>
+                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                            <Icon name="Fuel" size={12} />
+                            М464КУ193
+                          </Badge>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium">Виниченко Иван → Краснодар</div>
+                          <div className="text-xs text-muted-foreground">15.01.2026 20:00 — Офис</div>
+                          <div className="text-xs text-muted-foreground">19.01.2026 20:00 — Доставка</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="bg-orange-100/30 border-orange-500/30">
                   <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -822,6 +989,43 @@ const Index = () => {
                         >
                           <Icon name="ClipboardList" size={14} className="mr-1" />
                           Приёмка
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm(`Удалить ${car.model} (${car.license_plate})?`)) {
+                              try {
+                                const response = await fetch(`https://functions.poehali.dev/c1620ea4-c9a8-4c0e-bb5b-5820d4042dfa?action=delete&id=${car.id}`, {
+                                  method: 'DELETE'
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                  toast({
+                                    title: "Автомобиль удалён",
+                                    description: data.message
+                                  });
+                                  setFleet(fleet.filter(v => v.id !== car.id));
+                                } else {
+                                  toast({
+                                    title: "Ошибка",
+                                    description: data.error || "Не удалось удалить автомобиль",
+                                    variant: "destructive"
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Ошибка",
+                                  description: "Не удалось удалить автомобиль",
+                                  variant: "destructive"
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          <Icon name="Trash2" size={14} />
                         </Button>
                       </div>
                     </div>
