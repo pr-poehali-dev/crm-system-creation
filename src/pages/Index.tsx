@@ -61,6 +61,8 @@ const Index = () => {
     km: 0,
   });
 
+  const [selectedServices, setSelectedServices] = useState<Array<{id: string; name: string; price: number; adjustedPrice: number}>>([]);
+
   const [requestCustomFields, setRequestCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
 
   const addRequestCustomField = () => {
@@ -98,13 +100,23 @@ const Index = () => {
   const [requests, setRequests] = useState<any[]>([]);
 
   const calculatePrice = () => {
-    const service = services.find(s => s.id === newRequest.service);
-    if (!service) return 0;
+    let total = 0;
     
-    if (service.id === 'rent') {
-      return service.price * newRequest.days + (service.kmPrice || 0) * newRequest.km;
+    // Считаем стоимость выбранных услуг
+    selectedServices.forEach(service => {
+      total += service.adjustedPrice;
+    });
+    
+    // Если выбрана аренда, добавляем расчёт по дням и км
+    const rentService = selectedServices.find(s => s.id === 'rent');
+    if (rentService && newRequest.service === 'rent') {
+      const baseRentPrice = services.find(s => s.id === 'rent');
+      if (baseRentPrice) {
+        total += baseRentPrice.price * (newRequest.days - 1) + (baseRentPrice.kmPrice || 0) * newRequest.km;
+      }
     }
-    return service.price;
+    
+    return total;
   };
 
   const [fleet, setFleet] = useState<any[]>([]);
@@ -281,22 +293,67 @@ const Index = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="service">Услуга</Label>
-                      <Select value={newRequest.service} onValueChange={(val) => setNewRequest({...newRequest, service: val})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Выберите услугу" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {services.map(s => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name} — ₽{s.price.toLocaleString()} / {s.unit}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label>Услуги (можно выбрать несколько)</Label>
+                      <div className="p-4 border rounded-lg space-y-3 bg-sidebar/30">
+                        {services.map(service => {
+                          const isSelected = selectedServices.some(s => s.id === service.id);
+                          const selectedService = selectedServices.find(s => s.id === service.id);
+                          
+                          return (
+                            <div key={service.id} className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedServices([...selectedServices, {
+                                      id: service.id,
+                                      name: service.name,
+                                      price: service.price,
+                                      adjustedPrice: service.price
+                                    }]);
+                                    if (service.id === 'rent') {
+                                      setNewRequest({...newRequest, service: 'rent'});
+                                    }
+                                  } else {
+                                    setSelectedServices(selectedServices.filter(s => s.id !== service.id));
+                                    if (service.id === 'rent') {
+                                      setNewRequest({...newRequest, service: ''});
+                                    }
+                                  }
+                                }}
+                                className="w-5 h-5"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium">{service.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  Базовая: ₽{service.price.toLocaleString()} / {service.unit}
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <div className="flex items-center gap-2">
+                                  <Label className="text-xs">Цена:</Label>
+                                  <Input
+                                    type="number"
+                                    className="w-28"
+                                    value={selectedService?.adjustedPrice || service.price}
+                                    onChange={(e) => {
+                                      setSelectedServices(selectedServices.map(s => 
+                                        s.id === service.id 
+                                          ? {...s, adjustedPrice: parseInt(e.target.value) || 0}
+                                          : s
+                                      ));
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {newRequest.service === 'rent' && (
+                    {selectedServices.some(s => s.id === 'rent') && (
                       <>
                         <div className="space-y-2">
                           <Label htmlFor="car">Автомобиль</Label>
@@ -307,7 +364,7 @@ const Index = () => {
                             <SelectContent>
                               {fleet.filter(c => c.status === 'Свободен').map(c => (
                                 <SelectItem key={c.id} value={c.model}>
-                                  {c.model} ({c.number})
+                                  {c.model} ({c.license_plate})
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -351,19 +408,27 @@ const Index = () => {
                       />
                     </div>
 
-                    {newRequest.service && (
+                    {selectedServices.length > 0 && (
                       <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg">Расчёт стоимости</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2">
-                            {newRequest.service === 'rent' && (
+                            {selectedServices.map(service => (
+                              <div key={service.id} className="flex justify-between text-sm">
+                                <span>{service.name}</span>
+                                <span className="font-medium">₽{service.adjustedPrice.toLocaleString()}</span>
+                              </div>
+                            ))}
+                            {selectedServices.some(s => s.id === 'rent') && (
                               <>
-                                <div className="flex justify-between text-sm">
-                                  <span>Аренда ({newRequest.days} сут × ₽5,000)</span>
-                                  <span className="font-medium">₽{(5000 * newRequest.days).toLocaleString()}</span>
-                                </div>
+                                {newRequest.days > 1 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span>Доп. дни ({newRequest.days - 1} сут × ₽5,000)</span>
+                                    <span className="font-medium">₽{(5000 * (newRequest.days - 1)).toLocaleString()}</span>
+                                  </div>
+                                )}
                                 {newRequest.km > 0 && (
                                   <div className="flex justify-between text-sm">
                                     <span>Пробег ({newRequest.km} км × ₽15)</span>
@@ -483,6 +548,7 @@ const Index = () => {
                       onClick={() => {
                         const requestData = {
                           ...newRequest,
+                          services: selectedServices,
                           custom_fields: requestCustomFields.filter(f => f.name && f.value),
                           price: calculatePrice()
                         };
@@ -493,6 +559,7 @@ const Index = () => {
                           description: `Новая заявка на сумму ₽${calculatePrice().toLocaleString()} успешно создана`,
                         });
                         setRequestCustomFields([]);
+                        setSelectedServices([]);
                       }}
                     >
                       Создать заявку

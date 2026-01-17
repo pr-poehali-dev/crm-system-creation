@@ -43,6 +43,7 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     purchase_price: 0,
     rental_price_per_day: 5000,
     rental_price_per_km: 15,
+    sublease_cost: 0,
     
     notes: '',
   });
@@ -126,6 +127,7 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
         purchase_price: 0,
         rental_price_per_day: 5000,
         rental_price_per_km: 15,
+        sublease_cost: 0,
         notes: '',
       });
       
@@ -426,7 +428,7 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="rental_price_per_day">Цена аренды (₽/сутки) *</Label>
                 <Input
@@ -446,6 +448,18 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
                   min="0"
                   value={vehicle.rental_price_per_km}
                   onChange={(e) => setVehicle({...vehicle, rental_price_per_km: parseFloat(e.target.value)})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sublease_cost">Стоимость субаренды (₽/сутки)</Label>
+                <Input
+                  id="sublease_cost"
+                  type="number"
+                  min="0"
+                  placeholder="Если берём в аренду"
+                  value={vehicle.sublease_cost}
+                  onChange={(e) => setVehicle({...vehicle, sublease_cost: parseFloat(e.target.value)})}
                 />
               </div>
             </div>

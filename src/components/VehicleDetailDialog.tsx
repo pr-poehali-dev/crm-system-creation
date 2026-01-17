@@ -238,6 +238,21 @@ export const VehicleDetailDialog = ({
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Цена аренды (₽/сутки)</Label>
+                      <Input type="number" value={editedVehicle.rental_price_per_day} onChange={(e) => setEditedVehicle({...editedVehicle, rental_price_per_day: parseFloat(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Цена за км (₽/км)</Label>
+                      <Input type="number" value={editedVehicle.rental_price_per_km} onChange={(e) => setEditedVehicle({...editedVehicle, rental_price_per_km: parseFloat(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Стоимость субаренды (₽/сутки)</Label>
+                      <Input type="number" value={editedVehicle.sublease_cost || 0} onChange={(e) => setEditedVehicle({...editedVehicle, sublease_cost: parseFloat(e.target.value)})} placeholder="Если берём в аренду" />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Примечания</Label>
                     <Textarea value={editedVehicle.notes} onChange={(e) => setEditedVehicle({...editedVehicle, notes: e.target.value})} rows={3} />

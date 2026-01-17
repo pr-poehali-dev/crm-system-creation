@@ -16,14 +16,15 @@
       "method": "POST",
       "path": "/",
       "body": {
-        "model": "Hyundai Grand Starex",
-        "license_plate": "А123ВС777",
+        "model": "Hyundai Grand Starex Test",
+        "license_plate": "Т999ЕС999",
         "branch_id": 1,
         "year": 2020,
         "seats": 7,
         "category": "Микроавтобус",
         "rental_price_per_day": 5000,
-        "rental_price_per_km": 15
+        "rental_price_per_km": 15,
+        "sublease_cost": 3500
       },
       "expectedStatus": 201,
       "expectedBody": {

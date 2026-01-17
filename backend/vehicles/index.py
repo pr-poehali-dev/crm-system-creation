@@ -40,7 +40,7 @@ def handler(event, context):
                            status, current_location, insurance_expires, tech_inspection_expires,
                            osago_number, kasko_number, last_service_date, next_service_date,
                            last_service_km, next_service_km, current_km, purchase_price,
-                           rental_price_per_day, rental_price_per_km, notes, is_active,
+                           rental_price_per_day, rental_price_per_km, sublease_cost, notes, is_active,
                            created_at, updated_at
                     FROM t_p81623955_crm_system_creation.fleet
                     WHERE id = %s
@@ -68,8 +68,9 @@ def handler(event, context):
                     'purchase_price': float(row[20]) if row[20] else None,
                     'rental_price_per_day': float(row[21]) if row[21] else None,
                     'rental_price_per_km': float(row[22]) if row[22] else None,
-                    'notes': row[23], 'is_active': row[24],
-                    'created_at': str(row[25]), 'updated_at': str(row[26]) if row[26] else None
+                    'sublease_cost': float(row[23]) if row[23] else 0.0,
+                    'notes': row[24], 'is_active': row[25],
+                    'created_at': str(row[26]), 'updated_at': str(row[27]) if row[27] else None
                 }
                 
                 return {
@@ -115,8 +116,8 @@ def handler(event, context):
                     status, current_location, insurance_expires, tech_inspection_expires,
                     osago_number, kasko_number, last_service_date, next_service_date,
                     last_service_km, next_service_km, current_km, purchase_price,
-                    rental_price_per_day, rental_price_per_km, notes, is_active, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    rental_price_per_day, rental_price_per_km, sublease_cost, notes, is_active, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
             ''', (
                 data.get('branch_id'), data.get('model'), data.get('license_plate'),
@@ -126,7 +127,7 @@ def handler(event, context):
                 data.get('osago_number'), data.get('kasko_number'), data.get('last_service_date'),
                 data.get('next_service_date'), data.get('last_service_km'), data.get('next_service_km'),
                 data.get('current_km', 0), data.get('purchase_price'), data.get('rental_price_per_day'),
-                data.get('rental_price_per_km'), data.get('notes'), True, datetime.now()
+                data.get('rental_price_per_km'), data.get('sublease_cost', 0), data.get('notes'), True, datetime.now()
             ))
             
             vehicle_id = cur.fetchone()[0]
@@ -154,11 +155,14 @@ def handler(event, context):
             cur.execute('''
                 UPDATE t_p81623955_crm_system_creation.fleet
                 SET model = %s, license_plate = %s, status = %s, current_location = %s,
-                    current_km = %s, notes = %s, updated_at = %s
+                    current_km = %s, rental_price_per_day = %s, rental_price_per_km = %s,
+                    sublease_cost = %s, notes = %s, updated_at = %s
                 WHERE id = %s
             ''', (
                 data.get('model'), data.get('license_plate'), data.get('status'),
-                data.get('current_location'), data.get('current_km'), data.get('notes'),
+                data.get('current_location'), data.get('current_km'), 
+                data.get('rental_price_per_day'), data.get('rental_price_per_km'),
+                data.get('sublease_cost', 0), data.get('notes'),
                 datetime.now(), vehicle_id
             ))
             
