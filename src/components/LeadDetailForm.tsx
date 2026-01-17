@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,8 +51,18 @@ export const LeadDetailForm = ({ open, onOpenChange, onSave }: LeadDetailFormPro
   });
 
   const updateData = (key: string, value: any) => {
-    setLeadData({ ...leadData, [key]: value });
+    setLeadData((prev) => ({ ...prev, [key]: value }));
   };
+
+  // Автосохранение лида
+  useAutoSave({
+    data: leadData,
+    enabled: open && leadData.client_name && leadData.client_phone,
+    onSave: async (data) => {
+      console.log('Автосохранение лида:', data);
+      // Здесь был бы fetch к API
+    },
+  });
 
   const handleFileUpload = (type: 'documents' | 'media', files: FileList | null) => {
     if (!files) return;

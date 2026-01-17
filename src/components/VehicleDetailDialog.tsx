@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,20 @@ export const VehicleDetailDialog = ({
       setEditedVehicle(vehicle);
     }
   }, [vehicle]);
+
+  // Автосохранение при редактировании
+  useAutoSave({
+    data: editedVehicle,
+    enabled: isEditing && vehicle?.id,
+    onSave: async (data) => {
+      const vehicleData = { ...data, id: vehicle.id };
+      await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vehicleData)
+      });
+    },
+  });
 
   if (!vehicle) return null;
 

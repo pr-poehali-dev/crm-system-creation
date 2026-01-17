@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { useCRMStore } from '@/lib/store';
 import Icon from '@/components/ui/icon';
 
@@ -52,8 +53,36 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
   });
   
   const [vehicle, setVehicle] = useState(getInitialVehicle());
+  const [vehicleId, setVehicleId] = useState<number | null>(null);
 
   const [customFields, setCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
+
+  // Автосохранение машины
+  useAutoSave({
+    data: vehicle,
+    enabled: open && vehicle.model && vehicle.license_plate, // Только если есть обязательные поля
+    onSave: async (data) => {
+      const vehicleData = {
+        ...data,
+        id: vehicleId,
+        custom_fields: customFields.filter(f => f.name && f.value),
+        status: 'Черновик'
+      };
+
+      const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
+        method: vehicleId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vehicleData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (!vehicleId && result.id) {
+          setVehicleId(result.id);
+        }
+      }
+    },
+  });
 
   const addCustomField = () => {
     setCustomFields([...customFields, {
@@ -86,11 +115,13 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     try {
       const vehicleData = {
         ...vehicle,
-        custom_fields: customFields.filter(f => f.name && f.value)
+        id: vehicleId,
+        custom_fields: customFields.filter(f => f.name && f.value),
+        status: vehicle.status || 'Свободен' // Финальный статус
       };
 
       const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
-        method: 'POST',
+        method: vehicleId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -111,6 +142,7 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
       });
       
       setVehicle(getInitialVehicle());
+      setVehicleId(null);
       setCustomFields([]);
       onOpenChange(false)
     } catch (error) {

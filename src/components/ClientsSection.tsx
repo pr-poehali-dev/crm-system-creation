@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,9 +60,30 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     license_issued_date: '',
     notes: ''
   });
+  const [clientId, setClientId] = useState<number | null>(null);
 
   const [passportPhotos, setPassportPhotos] = useState<string[]>([]);
   const [licensePhotos, setLicensePhotos] = useState<string[]>([]);
+
+  // Автосохранение клиента
+  useAutoSave({
+    data: newClient,
+    enabled: isAddDialogOpen && newClient.name && newClient.phone,
+    onSave: async (data) => {
+      const clientData = { ...data, id: clientId, status: 'Черновик' };
+      const response = await fetch(CLIENTS_API, {
+        method: clientId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clientData)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (!clientId && result.id) {
+          setClientId(result.id);
+        }
+      }
+    },
+  });
 
   useEffect(() => {
     loadClients();
@@ -117,10 +139,17 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     }
 
     try {
+      // Финальное сохранение со статусом "Активен"
+      const clientData = { 
+        ...newClient, 
+        id: clientId,
+        status: 'Активен'
+      };
+      
       const response = await fetch(CLIENTS_API, {
-        method: 'POST',
+        method: clientId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newClient)
+        body: JSON.stringify(clientData)
       });
       
       if (!response.ok) throw new Error('Failed to add client');
@@ -128,6 +157,7 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
       const data = await response.json();
       
       setIsAddDialogOpen(false);
+      setClientId(null);
       setNewClient({
         name: '',
         phone: '',
