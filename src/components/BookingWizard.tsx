@@ -85,9 +85,38 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     } finally {
       setIsLoadingClients(false);
     }
-  };\n\n  const searchClientByName = async (name: string) => {
+  };
+
+  const searchClientByName = async (name: string) => {
     if (name.length < 3) return;
-    \n    try {\n      setIsLoadingClients(true);\n      const response = await fetch(CLIENTS_API);\n      const data = await response.json();\n      const foundClient = data.clients?.find((c: any) => \n        c.name.toLowerCase().includes(name.toLowerCase())\n      );\n      \n      if (foundClient) {\n        setBookingData((prev: any) => ({\n          ...prev,\n          client_name: foundClient.name,\n          client_phone: foundClient.phone,\n          client_email: foundClient.email || '',\n          client_city: foundClient.city || '',\n        }));\n        toast({\n          title: '✅ Клиент найден',\n          description: `Данные ${foundClient.name} подтянуты из базы`,\n        });\n      }\n    } catch (error) {\n      console.error('Error searching client:', error);\n    } finally {\n      setIsLoadingClients(false);\n    }\n  };"}
+    
+    try {
+      setIsLoadingClients(true);
+      const response = await fetch(CLIENTS_API);
+      const data = await response.json();
+      const foundClient = data.clients?.find((c: any) => 
+        c.name.toLowerCase().includes(name.toLowerCase())
+      );
+      
+      if (foundClient) {
+        setBookingData((prev: any) => ({
+          ...prev,
+          client_name: foundClient.name,
+          client_phone: foundClient.phone,
+          client_email: foundClient.email || '',
+          client_city: foundClient.city || '',
+        }));
+        toast({
+          title: '✅ Клиент найден',
+          description: `Данные ${foundClient.name} подтянуты из базы`,
+        });
+      }
+    } catch (error) {
+      console.error('Error searching client:', error);
+    } finally {
+      setIsLoadingClients(false);
+    }
+  };
 
   const calculateTotal = () => {
     let total = 0;
