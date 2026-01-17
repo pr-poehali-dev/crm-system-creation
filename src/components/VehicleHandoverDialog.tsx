@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 
@@ -35,6 +36,25 @@ export const VehicleHandoverDialog = ({
     damages: '',
     payment_amount: 0,
   });
+
+  const [customFields, setCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
+
+  const addCustomField = () => {
+    setCustomFields([...customFields, {
+      id: Date.now().toString(),
+      name: '',
+      type: 'text',
+      value: ''
+    }]);
+  };
+
+  const updateCustomField = (id: string, key: string, value: any) => {
+    setCustomFields(customFields.map(f => f.id === id ? {...f, [key]: value} : f));
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields(customFields.filter(f => f.id !== id));
+  };
 
   const handleHandover = () => {
     if (!handoverData.odometer) {
@@ -66,6 +86,7 @@ export const VehicleHandoverDialog = ({
       mode,
       vehicle: vehicle?.license_plate || booking?.vehicle?.license_plate,
       ...handoverData,
+      custom_fields: customFields.filter(f => f.name && f.value)
     });
 
     toast({
@@ -116,7 +137,16 @@ export const VehicleHandoverDialog = ({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <Tabs defaultValue="main" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="main">Основные данные</TabsTrigger>
+            <TabsTrigger value="custom" className="flex items-center gap-1">
+              <Icon name="Plus" size={14} />
+              Свои поля
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="main" className="space-y-6 py-4">
           {mode === 'pickup' && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-3 mb-4">
@@ -233,7 +263,100 @@ export const VehicleHandoverDialog = ({
               rows={3}
             />
           </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="custom" className="space-y-4 mt-4">
+            <div className="p-4 bg-info/10 rounded-lg border border-info/30 mb-4">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" size={20} className="text-info mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-foreground mb-1">Добавьте дополнительные поля</p>
+                  <p className="text-muted-foreground">
+                    Комментарии, особенности выдачи/приёма, дополнительные параметры
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {customFields.map((field) => (
+              <div key={field.id} className="p-4 border rounded-lg space-y-3 bg-sidebar/30">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Название поля</Label>
+                    <Input
+                      placeholder="Напр.: Место выдачи, Контакт, Особенности"
+                      value={field.name}
+                      onChange={(e) => updateCustomField(field.id, 'name', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Тип поля</Label>
+                    <Select value={field.type} onValueChange={(val) => updateCustomField(field.id, 'type', val)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Текст</SelectItem>
+                        <SelectItem value="number">Число</SelectItem>
+                        <SelectItem value="date">Дата</SelectItem>
+                        <SelectItem value="checkbox">Да/Нет</SelectItem>
+                        <SelectItem value="textarea">Длинный текст</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-2">
+                    <Label>Значение</Label>
+                    {field.type === 'textarea' ? (
+                      <Textarea
+                        placeholder="Введите значение"
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, 'value', e.target.value)}
+                        rows={3}
+                      />
+                    ) : field.type === 'checkbox' ? (
+                      <div className="flex items-center gap-2 h-10">
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => updateCustomField(field.id, 'value', e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                        <span className="text-sm text-muted-foreground">{field.value ? 'Да' : 'Нет'}</span>
+                      </div>
+                    ) : (
+                      <Input
+                        type={field.type}
+                        placeholder="Введите значение"
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, 'value', e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => removeCustomField(field.id)}
+                  >
+                    <Icon name="Trash2" size={18} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              className="w-full border-dashed"
+              onClick={addCustomField}
+            >
+              <Icon name="Plus" size={18} className="mr-2" />
+              Добавить свое поле
+            </Button>
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

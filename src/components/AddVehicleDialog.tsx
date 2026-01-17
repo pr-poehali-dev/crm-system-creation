@@ -47,6 +47,25 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     notes: '',
   });
 
+  const [customFields, setCustomFields] = useState<Array<{id: string; name: string; type: string; value: any}>>([]);
+
+  const addCustomField = () => {
+    setCustomFields([...customFields, {
+      id: Date.now().toString(),
+      name: '',
+      type: 'text',
+      value: ''
+    }]);
+  };
+
+  const updateCustomField = (id: string, key: string, value: any) => {
+    setCustomFields(customFields.map(f => f.id === id ? {...f, [key]: value} : f));
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields(customFields.filter(f => f.id !== id));
+  };
+
   const handleSave = async () => {
     // Проверка обязательных полей
     if (!vehicle.model || !vehicle.license_plate) {
@@ -59,12 +78,17 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     }
 
     try {
+      const vehicleData = {
+        ...vehicle,
+        custom_fields: customFields.filter(f => f.name && f.value)
+      };
+
       const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(vehicle),
+        body: JSON.stringify(vehicleData),
       });
 
       if (!response.ok) {
@@ -142,11 +166,15 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Основные</TabsTrigger>
             <TabsTrigger value="documents">Документы</TabsTrigger>
             <TabsTrigger value="service">ТО</TabsTrigger>
             <TabsTrigger value="finance">Финансы</TabsTrigger>
+            <TabsTrigger value="custom" className="flex items-center gap-1">
+              <Icon name="Plus" size={14} />
+              Свои поля
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -432,6 +460,98 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
                 rows={4}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="custom" className="space-y-4 mt-4">
+            <div className="p-4 bg-info/10 rounded-lg border border-info/30 mb-4">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" size={20} className="text-info mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-foreground mb-1">Добавьте свои поля</p>
+                  <p className="text-muted-foreground">
+                    Создавайте любые дополнительные параметры для автомобиля: пометки, особенности, контакты и т.д.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {customFields.map((field) => (
+              <div key={field.id} className="p-4 border rounded-lg space-y-3 bg-sidebar/30">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Название поля</Label>
+                    <Input
+                      placeholder="Например: Цвет салона, Владелец, Парковочное место"
+                      value={field.name}
+                      onChange={(e) => updateCustomField(field.id, 'name', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Тип поля</Label>
+                    <Select value={field.type} onValueChange={(val) => updateCustomField(field.id, 'type', val)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Текст</SelectItem>
+                        <SelectItem value="number">Число</SelectItem>
+                        <SelectItem value="date">Дата</SelectItem>
+                        <SelectItem value="checkbox">Да/Нет</SelectItem>
+                        <SelectItem value="textarea">Длинный текст</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-2">
+                    <Label>Значение</Label>
+                    {field.type === 'textarea' ? (
+                      <Textarea
+                        placeholder="Введите значение"
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, 'value', e.target.value)}
+                        rows={3}
+                      />
+                    ) : field.type === 'checkbox' ? (
+                      <div className="flex items-center gap-2 h-10">
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => updateCustomField(field.id, 'value', e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                        <span className="text-sm text-muted-foreground">{field.value ? 'Да' : 'Нет'}</span>
+                      </div>
+                    ) : (
+                      <Input
+                        type={field.type}
+                        placeholder="Введите значение"
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, 'value', e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => removeCustomField(field.id)}
+                  >
+                    <Icon name="Trash2" size={18} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              className="w-full border-dashed"
+              onClick={addCustomField}
+            >
+              <Icon name="Plus" size={18} className="mr-2" />
+              Добавить свое поле
+            </Button>
           </TabsContent>
         </Tabs>
 
