@@ -8,6 +8,7 @@ import CalendarSection from '@/components/CalendarSection';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import LeadsSection from '@/components/LeadsSection';
 import ClientsSection from '@/components/ClientsSection';
+import LoginPage from '@/components/LoginPage';
 import AddVehicleDialog from '@/components/AddVehicleDialog';
 import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
 import VehicleDetailDialog from '@/components/VehicleDetailDialog';
@@ -27,8 +28,14 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
+const USERS = {
+  nikita: { name: 'Никита', role: 'Генеральный директор' },
+  marina: { name: 'Марина', role: 'Генеральный директор' },
+};
+
 const Index = () => {
   const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<number | null>(null);
@@ -119,6 +126,33 @@ const Index = () => {
     return colors[status] || 'bg-muted text-muted-foreground';
   };
 
+  const handleLogin = (username: string) => {
+    setCurrentUser(username);
+    localStorage.setItem('crm_user', username);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('crm_user');
+    toast({
+      title: "Выход выполнен",
+      description: "До встречи!",
+    });
+  };
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('crm_user');
+    if (savedUser && (savedUser === 'nikita' || savedUser === 'marina')) {
+      setCurrentUser(savedUser);
+    }
+  }, []);
+
+  if (!currentUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  const userData = USERS[currentUser as keyof typeof USERS];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-sidebar/30">
       <aside className="fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-6 space-y-8 z-50">
@@ -167,12 +201,20 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="px-4 py-2">
+                <Icon name="User" size={16} className="mr-2" />
+                {userData.name} • {userData.role}
+              </Badge>
+              <Badge variant="outline" className="px-4 py-2">
                 <Icon name="Calendar" size={16} className="mr-2" />
                 17 января 2026
               </Badge>
               <Button variant="outline">
                 <Icon name="Download" size={18} className="mr-2" />
                 Экспорт
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <Icon name="LogOut" size={18} className="mr-2" />
+                Выйти
               </Button>
               <Dialog open={isNewRequestOpen} onOpenChange={setIsNewRequestOpen}>
                 <DialogTrigger asChild>
