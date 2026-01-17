@@ -27,17 +27,22 @@ interface Client {
   created_at: string;
 }
 
-export const ClientsSection = () => {
+interface ClientsSectionProps {
+  initialClientData?: { name: string; phone: string };
+  autoOpenAdd?: boolean;
+}
+
+export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectionProps = {}) => {
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(autoOpenAdd || false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const [newClient, setNewClient] = useState({
-    name: '',
-    phone: '',
+    name: initialClientData?.name || '',
+    phone: initialClientData?.phone || '',
     email: '',
     passport_series: '',
     passport_number: '',

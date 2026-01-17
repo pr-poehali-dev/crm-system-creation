@@ -41,6 +41,7 @@ const Index = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isBookingDetailOpen, setIsBookingDetailOpen] = useState(false);
   const [isHandoverOpen, setIsHandoverOpen] = useState(false);
+  const [clientDataFromLead, setClientDataFromLead] = useState<{ name: string; phone: string } | null>(null);
   const [newRequest, setNewRequest] = useState({
     client: '',
     phone: '',
@@ -976,8 +977,20 @@ const Index = () => {
       {activeSection === 'settings' && <SettingsSection />}
       {activeSection === 'calendar' && <CalendarSection />}
       {activeSection === 'integrations' && <IntegrationsPage />}
-      {activeSection === 'leads' && <LeadsSection />}
-      {activeSection === 'clients' && <ClientsSection />}
+      {activeSection === 'leads' && (
+        <LeadsSection 
+          onConvertToClient={(leadData) => {
+            setClientDataFromLead(leadData);
+            setActiveSection('clients');
+          }}
+        />
+      )}
+      {activeSection === 'clients' && (
+        <ClientsSection 
+          initialClientData={clientDataFromLead || undefined}
+          autoOpenAdd={!!clientDataFromLead}
+        />
+      )}
 
       <AddVehicleDialog 
         open={isAddVehicleOpen} 

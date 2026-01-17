@@ -26,7 +26,11 @@ interface Lead {
   manager?: string;
 }
 
-export const LeadsSection = () => {
+interface LeadsSectionProps {
+  onConvertToClient?: (leadData: { name: string; phone: string }) => void;
+}
+
+export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeStage, setActiveStage] = useState<string>('all');
@@ -529,6 +533,25 @@ export const LeadsSection = () => {
               <DialogFooter>
                 <Button variant="outline" onClick={() => setSelectedLead(null)}>
                   Закрыть
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    if (onConvertToClient && selectedLead) {
+                      onConvertToClient({
+                        name: selectedLead.client,
+                        phone: selectedLead.phone
+                      });
+                      setSelectedLead(null);
+                      toast({
+                        title: "Переход к созданию клиента",
+                        description: `Данные из лида ${selectedLead.client} перенесены в форму клиента`,
+                      });
+                    }
+                  }}
+                >
+                  <Icon name="UserPlus" size={18} className="mr-2" />
+                  Перевести в клиента
                 </Button>
                 <Button className="bg-gradient-to-r from-primary to-secondary">
                   <Icon name="Save" size={18} className="mr-2" />
