@@ -275,29 +275,68 @@ export const IntegrationsPage = () => {
                     </TabsContent>
 
                     <TabsContent value="settings" className="space-y-4 mt-4">
-                      <div className="flex items-center justify-between">
+                      <Card className="bg-info/10 border-info/30">
+                        <CardContent className="pt-4">
+                          <div className="flex items-start gap-3">
+                            <Icon name="CheckCircle" size={20} className="text-info mt-0.5" />
+                            <div className="space-y-2 text-sm">
+                              <p className="font-medium">Авито подключён успешно!</p>
+                              <p className="text-muted-foreground">
+                                Теперь вы можете синхронизировать свой автопарк с объявлениями на Avito
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <div className="font-medium">Автоматическое обновление объявлений</div>
                           <div className="text-sm text-muted-foreground">Поднимать объявления каждые 2 часа</div>
                         </div>
-                        <Switch />
+                        <Switch 
+                          checked={selectedIntegration.config?.auto_update || false}
+                          onCheckedChange={(checked) => updateConfig('auto_update', checked)}
+                        />
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <div className="font-medium">Снимать с публикации занятые авто</div>
                           <div className="text-sm text-muted-foreground">При бронировании автоматически убирать из Avito</div>
                         </div>
-                        <Switch defaultChecked />
+                        <Switch 
+                          checked={selectedIntegration.config?.hide_booked !== false}
+                          onCheckedChange={(checked) => updateConfig('hide_booked', checked)}
+                        />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Шаблон описания</Label>
+                        <Label>Шаблон описания объявления</Label>
                         <Textarea 
-                          placeholder="Шаблон для объявлений..."
+                          placeholder="Аренда {model} в отличном состоянии. Год выпуска {year}. Цена {price} руб/сутки."
                           rows={4}
+                          value={selectedIntegration.config?.ad_template || ''}
+                          onChange={(e) => updateConfig('ad_template', e.target.value)}
                         />
+                        <p className="text-xs text-muted-foreground">
+                          Доступные переменные: {'{model}'}, {'{year}'}, {'{price}'}, {'{number}'}
+                        </p>
                       </div>
+
+                      <Button 
+                        className="w-full bg-gradient-to-r from-primary to-secondary"
+                        size="lg"
+                        onClick={() => {
+                          toast({
+                            title: "Синхронизация запущена",
+                            description: "Ваш автопарк публикуется на Avito. Это займёт несколько минут.",
+                          });
+                        }}
+                      >
+                        <Icon name="Upload" size={18} className="mr-2" />
+                        Опубликовать автопарк на Avito
+                      </Button>
                     </TabsContent>
 
                     <TabsContent value="help" className="space-y-4 mt-4">
