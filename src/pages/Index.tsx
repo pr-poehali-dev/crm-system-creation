@@ -8,6 +8,10 @@ import CalendarSection from '@/components/CalendarSection';
 import IntegrationsPage from '@/components/IntegrationsPage';
 import AddVehicleDialog from '@/components/AddVehicleDialog';
 import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
+import VehicleDetailDialog from '@/components/VehicleDetailDialog';
+import MaintenanceStatusDialog from '@/components/MaintenanceStatusDialog';
+import BookingDetailDialog from '@/components/BookingDetailDialog';
+import VehicleHandoverDialog from '@/components/VehicleHandoverDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,6 +33,12 @@ const Index = () => {
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [checklistType, setChecklistType] = useState<'pickup' | 'return'>('pickup');
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [isVehicleDetailOpen, setIsVehicleDetailOpen] = useState(false);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [isBookingDetailOpen, setIsBookingDetailOpen] = useState(false);
+  const [isHandoverOpen, setIsHandoverOpen] = useState(false);
   const [newRequest, setNewRequest] = useState({
     client: '',
     phone: '',
@@ -425,7 +435,21 @@ const Index = () => {
                           <div className="text-xs text-muted-foreground">22.01.2026 12:00 — Доставка</div>
                         </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-primary/50 transition-all"
+                        onClick={() => {
+                          setSelectedBooking({
+                            id: '38ac8899',
+                            client: 'Шлейгер Дмитрий',
+                            phone: '+7 (913) 531 12 12',
+                            car: 'О304СВ193',
+                            startDate: '19.01.2026 15:00',
+                            endDate: '21.01.2026 15:00',
+                            notes: 'Переезд семьи из Москвы в Краснодар'
+                          });
+                          setIsBookingDetailOpen(true);
+                        }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-blue-600 text-white">42 000</Badge>
                           <Badge variant="secondary" className="text-xs">О304СВ193</Badge>
@@ -684,7 +708,14 @@ const Index = () => {
                       Нет автомобилей в автопарке
                     </div>
                   ) : fleet.map((car) => (
-                    <div key={car.id} className="p-5 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group hover:scale-[1.02]">
+                    <div 
+                      key={car.id} 
+                      className="p-5 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
+                      onClick={() => {
+                        setSelectedVehicle(car);
+                        setIsVehicleDetailOpen(true);
+                      }}
+                    >
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-bold">{car.model}</h3>
@@ -969,6 +1000,42 @@ const Index = () => {
         open={isChecklistOpen} 
         onOpenChange={setIsChecklistOpen}
         checklistType={checklistType}
+      />
+      
+      <VehicleDetailDialog
+        open={isVehicleDetailOpen}
+        onOpenChange={setIsVehicleDetailOpen}
+        vehicle={selectedVehicle}
+        onShowMaintenance={() => {
+          setIsVehicleDetailOpen(false);
+          setIsMaintenanceOpen(true);
+        }}
+        onShowInsurance={() => {
+          toast({ title: "Страховка", description: "Раздел в разработке" });
+        }}
+      />
+      
+      <MaintenanceStatusDialog
+        open={isMaintenanceOpen}
+        onOpenChange={setIsMaintenanceOpen}
+        vehicle={selectedVehicle}
+      />
+      
+      <BookingDetailDialog
+        open={isBookingDetailOpen}
+        onOpenChange={setIsBookingDetailOpen}
+        booking={selectedBooking}
+        onHandover={() => {
+          setIsBookingDetailOpen(false);
+          setIsHandoverOpen(true);
+        }}
+      />
+      
+      <VehicleHandoverDialog
+        open={isHandoverOpen}
+        onOpenChange={setIsHandoverOpen}
+        vehicle={selectedVehicle}
+        booking={selectedBooking}
       />
     </div>
   );
