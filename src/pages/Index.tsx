@@ -367,7 +367,7 @@ const Index = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Users" size={20} className="text-orange-500" />
-                        <CardTitle className="text-lg">Заняки</CardTitle>
+                        <CardTitle className="text-lg">Заявки</CardTitle>
                       </div>
                       <Icon name="ChevronLeft" size={20} className="text-orange-500" />
                     </div>
