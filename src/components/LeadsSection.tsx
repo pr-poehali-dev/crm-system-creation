@@ -47,6 +47,8 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [bulkImportText, setBulkImportText] = useState('');
   const [newLead, setNewLead] = useState({
     client: '',
     phone: '',
@@ -195,13 +197,22 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
                 Воронка продаж и работа с обращениями из всех каналов
               </CardDescription>
             </div>
-            <Button 
-              className="bg-gradient-to-r from-primary to-secondary"
-              onClick={() => setIsAddLeadOpen(true)}
-            >
-              <Icon name="Plus" size={18} className="mr-2" />
-              Добавить диалог с Avito
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setIsBulkImportOpen(true)}
+              >
+                <Icon name="Upload" size={18} className="mr-2" />
+                Загрузить все диалоги
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-primary to-secondary"
+                onClick={() => setIsAddLeadOpen(true)}
+              >
+                <Icon name="Plus" size={18} className="mr-2" />
+                Добавить один диалог
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -677,6 +688,182 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
             >
               <Icon name="Save" size={18} className="mr-2" />
               Добавить лид
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог массового импорта */}
+      <Dialog open={isBulkImportOpen} onOpenChange={setIsBulkImportOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Массовая загрузка диалогов из Avito</DialogTitle>
+            <DialogDescription>
+              Загрузите сразу все ваши диалоги с клиентами
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Card className="bg-info/10 border-info/30">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <Icon name="Info" size={20} className="text-info mt-0.5" />
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <p className="font-medium mb-2">Инструкция по массовой загрузке:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <li>Откройте <a href="https://www.avito.ru/profile/messenger" target="_blank" rel="noopener noreferrer" className="text-primary underline">Мессенджер Avito</a> в новой вкладке</li>
+                        <li>Для каждого диалога скопируйте информацию в формате:</li>
+                      </ol>
+                      <div className="mt-2 p-3 bg-muted rounded text-xs font-mono">
+                        Имя: Александр Иванов<br/>
+                        Сообщение: Здравствуйте, интересует BMW X5<br/>
+                        Авто: BMW X5 2019<br/>
+                        Телефон: +7 999 123-45-67<br/>
+                        ---<br/>
+                        Имя: Мария Петрова<br/>
+                        Сообщение: Добрый день, можно посмотреть Mercedes?<br/>
+                        Авто: Mercedes-Benz E-Class<br/>
+                        ---
+                      </div>
+                      <p className="text-muted-foreground mt-2">Разделяйте диалоги тремя дефисами (---)</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-2">
+              <Label htmlFor="bulk_import">Вставьте диалоги</Label>
+              <Textarea
+                id="bulk_import"
+                placeholder="Имя: Александр&#10;Сообщение: Интересует BMW X5&#10;Авто: BMW X5 2019&#10;---&#10;Имя: Мария&#10;Сообщение: Можно посмотреть Mercedes?&#10;Авто: Mercedes E-Class"
+                rows={15}
+                value={bulkImportText}
+                onChange={(e) => setBulkImportText(e.target.value)}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Будет добавлено диалогов: <span className="font-bold text-foreground">{bulkImportText.split('---').filter(s => s.trim()).length}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const example = `Имя: Александр Иванов
+Сообщение: Здравствуйте, интересует BMW X5 для аренды на неделю
+Авто: BMW X5 2019
+Телефон: +7 999 123-45-67
+---
+Имя: Мария Петрова
+Сообщение: Добрый день, можно посмотреть Mercedes в четверг?
+Авто: Mercedes-Benz E-Class 2020
+---
+Имя: Дмитрий
+Сообщение: Сколько стоит аренда Audi A6?
+Авто: Audi A6 2021`;
+                      setBulkImportText(example);
+                      toast({
+                        title: "Пример загружен",
+                        description: "Замените на ваши реальные диалоги",
+                      });
+                    }}
+                  >
+                    <Icon name="FileText" size={16} className="mr-1" />
+                    Загрузить пример
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkImportOpen(false)}>
+              Отмена
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-primary to-secondary"
+              onClick={() => {
+                if (!bulkImportText.trim()) {
+                  toast({
+                    title: "Ошибка",
+                    description: "Вставьте диалоги для импорта",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                const dialogBlocks = bulkImportText.split('---').filter(s => s.trim());
+                const newLeads: Lead[] = [];
+                let successCount = 0;
+                let errorCount = 0;
+
+                dialogBlocks.forEach((block, index) => {
+                  const lines = block.trim().split('\n');
+                  const leadData: any = {};
+
+                  lines.forEach(line => {
+                    const [key, ...valueParts] = line.split(':');
+                    const value = valueParts.join(':').trim();
+                    
+                    if (key.toLowerCase().includes('имя') || key.toLowerCase().includes('имя клиента')) {
+                      leadData.client = value;
+                    } else if (key.toLowerCase().includes('сообщение')) {
+                      leadData.message = value;
+                    } else if (key.toLowerCase().includes('авто') || key.toLowerCase().includes('машина')) {
+                      leadData.car = value;
+                    } else if (key.toLowerCase().includes('телефон')) {
+                      leadData.phone = value;
+                    } else if (key.toLowerCase().includes('сумма')) {
+                      leadData.sum = parseInt(value.replace(/\D/g, '')) || 0;
+                    }
+                  });
+
+                  if (leadData.client && leadData.message) {
+                    const lead: Lead = {
+                      id: `bulk_${Date.now()}_${index}`,
+                      source: 'avito',
+                      client: leadData.client,
+                      phone: leadData.phone || 'Не указан',
+                      message: leadData.message,
+                      car: leadData.car || 'Не указан',
+                      stage: 'new',
+                      created: new Date().toLocaleString('ru-RU'),
+                      lastActivity: new Date().toLocaleString('ru-RU'),
+                      sum: leadData.sum || 0
+                    };
+                    newLeads.push(lead);
+                    successCount++;
+                  } else {
+                    errorCount++;
+                  }
+                });
+
+                if (newLeads.length > 0) {
+                  setLeads([...newLeads, ...leads]);
+                  setIsBulkImportOpen(false);
+                  setBulkImportText('');
+
+                  toast({
+                    title: "Диалоги импортированы",
+                    description: `Успешно добавлено ${successCount} диалогов${errorCount > 0 ? `, пропущено ${errorCount}` : ''}`,
+                  });
+                } else {
+                  toast({
+                    title: "Ошибка импорта",
+                    description: "Не удалось распознать диалоги. Проверьте формат.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              <Icon name="Upload" size={18} className="mr-2" />
+              Импортировать диалоги
             </Button>
           </DialogFooter>
         </DialogContent>
