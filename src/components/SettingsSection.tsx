@@ -27,11 +27,10 @@ export const SettingsSection = () => {
       
       <CardContent>
         <Tabs defaultValue="company" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="company">Компания</TabsTrigger>
             <TabsTrigger value="employees">Сотрудники</TabsTrigger>
             <TabsTrigger value="notifications">Уведомления</TabsTrigger>
-            <TabsTrigger value="integrations">Интеграции</TabsTrigger>
           </TabsList>
 
           <TabsContent value="company" className="space-y-6 mt-6">
@@ -179,73 +178,6 @@ export const SettingsSection = () => {
               <div className="space-y-2">
                 <Label>Telegram Bot Token</Label>
                 <Input type="password" defaultValue="••••••••••••••••" />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="integrations" className="space-y-4 mt-6">
-            <div className="grid gap-4">
-              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Icon name="Calendar" size={24} className="text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Google Calendar</div>
-                      <div className="text-sm text-muted-foreground">Синхронизация заявок с календарём</div>
-                    </div>
-                  </div>
-                  <Button variant="outline">Подключить</Button>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-success/20 flex items-center justify-center">
-                      <Icon name="MessageSquare" size={24} className="text-success" />
-                    </div>
-                    <div>
-                      <div className="font-medium">WhatsApp Business API</div>
-                      <div className="text-sm text-muted-foreground">Автоматические сообщения клиентам</div>
-                    </div>
-                  </div>
-                  <Button variant="outline">Подключить</Button>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-sidebar/30 border border-success/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-info/20 flex items-center justify-center">
-                      <Icon name="Send" size={24} className="text-info" />
-                    </div>
-                    <div>
-                      <div className="font-medium flex items-center gap-2">
-                        Telegram Bot
-                        <span className="px-2 py-0.5 text-xs bg-success/20 text-success rounded">Подключено</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">Уведомления о заявках в Telegram</div>
-                    </div>
-                  </div>
-                  <Button variant="outline">Настроить</Button>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-sidebar/30 border border-border/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-warning/20 flex items-center justify-center">
-                      <Icon name="CreditCard" size={24} className="text-warning" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Yookassa / Stripe</div>
-                      <div className="text-sm text-muted-foreground">Приём онлайн платежей</div>
-                    </div>
-                  </div>
-                  <Button variant="outline">Подключить</Button>
-                </div>
               </div>
             </div>
           </TabsContent>

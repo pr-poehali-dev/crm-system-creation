@@ -5,6 +5,9 @@ import ServicesSection from '@/components/ServicesSection';
 import FinanceSection from '@/components/FinanceSection';
 import SettingsSection from '@/components/SettingsSection';
 import CalendarSection from '@/components/CalendarSection';
+import IntegrationsPage from '@/components/IntegrationsPage';
+import AddVehicleDialog from '@/components/AddVehicleDialog';
+import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +26,9 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<number | null>(null);
+  const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [checklistType, setChecklistType] = useState<'pickup' | 'return'>('pickup');
   const [newRequest, setNewRequest] = useState({
     client: '',
     phone: '',
@@ -103,6 +109,7 @@ const Index = () => {
           { id: 'fleet', icon: 'Car', label: 'Автопарк' },
           { id: 'services', icon: 'Wrench', label: 'Услуги' },
           { id: 'finance', icon: 'Wallet', label: 'Финансы' },
+          { id: 'integrations', icon: 'Plug', label: 'Интеграции' },
           { id: 'settings', icon: 'Settings', label: 'Настройки' },
         ].map((item) => (
           <button
@@ -642,7 +649,7 @@ const Index = () => {
                       <Icon name="Filter" size={18} className="mr-2" />
                       Фильтр
                     </Button>
-                    <Button className="bg-gradient-to-r from-primary to-secondary">
+                    <Button className="bg-gradient-to-r from-primary to-secondary" onClick={() => setIsAddVehicleOpen(true)}>
                       <Icon name="Plus" size={18} className="mr-2" />
                       Добавить авто
                     </Button>
@@ -672,6 +679,34 @@ const Index = () => {
                           <span>ТО: {car.nextService}</span>
                         </div>
                       </div>
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChecklistType('pickup');
+                            setIsChecklistOpen(true);
+                          }}
+                        >
+                          <Icon name="ClipboardCheck" size={14} className="mr-1" />
+                          Выдача
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChecklistType('return');
+                            setIsChecklistOpen(true);
+                          }}
+                        >
+                          <Icon name="ClipboardList" size={14} className="mr-1" />
+                          Приёмка
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -686,8 +721,18 @@ const Index = () => {
           {activeSection === 'finance' && <FinanceSection />}
 
           {activeSection === 'settings' && <SettingsSection />}
+          
+          {activeSection === 'integrations' && <IntegrationsPage />}
         </div>
       </main>
+
+      <AddVehicleDialog open={isAddVehicleOpen} onOpenChange={setIsAddVehicleOpen} />
+      
+      <VehicleChecklistDialog 
+        open={isChecklistOpen} 
+        onOpenChange={setIsChecklistOpen}
+        checklistType={checklistType}
+      />
 
       <Dialog open={selectedRequest !== null} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

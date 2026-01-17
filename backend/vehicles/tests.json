@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get all vehicles",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "vehicles": "array",
+        "total": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create new vehicle",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "model": "Hyundai Grand Starex",
+        "license_plate": "А123ВС777",
+        "branch_id": 1,
+        "year": 2020,
+        "seats": 7,
+        "category": "Микроавтобус",
+        "rental_price_per_day": 5000,
+        "rental_price_per_km": 15
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "id": "number",
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
