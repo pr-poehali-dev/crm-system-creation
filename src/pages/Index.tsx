@@ -29,8 +29,8 @@ import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
 const USERS = {
-  nikita: { name: 'Никита', role: 'Генеральный директор' },
-  marina: { name: 'Марина', role: 'Генеральный директор' },
+  nikita: { name: 'Никита', role: 'Технический директор' },
+  marina: { name: 'Марина', role: 'Коммерческий директор' },
 };
 
 const Index = () => {

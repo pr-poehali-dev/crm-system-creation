@@ -13,8 +13,8 @@ interface LoginPageProps {
 }
 
 const USERS = {
-  nikita: { password: 'bibi0455584', name: 'Никита', role: 'Генеральный директор' },
-  marina: { password: 'bibi2858216', name: 'Марина', role: 'Генеральный директор' },
+  nikita: { password: 'bibi0455584', name: 'Никита', role: 'Технический директор' },
+  marina: { password: 'bibi2858216', name: 'Марина', role: 'Коммерческий директор' },
 };
 
 export const LoginPage = ({ onLogin }: LoginPageProps) => {
@@ -204,7 +204,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
                     <p className="font-medium mb-1">Доступ ограничен</p>
                     <p className="text-muted-foreground">
                       CRM «Русская Фантазия» доступна только авторизованным сотрудникам.
-                      Доступ предоставляется генеральными директорами.
+                      Доступ предоставляется руководством компании.
                     </p>
                   </div>
                 </div>
