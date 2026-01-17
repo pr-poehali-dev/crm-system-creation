@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useCRMStore } from '@/lib/store';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ export const VehicleDetailDialog = ({
   onShowInsurance
 }: VehicleDetailDialogProps) => {
   const { toast } = useToast();
+  const updateVehicle = useCRMStore((state) => state.updateVehicle);
   const [isEditing, setIsEditing] = useState(false);
   const [editedVehicle, setEditedVehicle] = useState(vehicle || {});
 
@@ -69,22 +71,22 @@ export const VehicleDetailDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Icon name="Car" size={24} className="text-primary" />
-              <span>Авто {vehicle.license_plate}</span>
+          <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Icon name="Car" size={20} className="text-primary sm:w-6 sm:h-6" />
+              <span className="text-base sm:text-lg">Авто {vehicle.license_plate}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-wrap">
               {isEditing ? (
                 <>
                   <Button variant="outline" size="sm" onClick={() => {
                     setIsEditing(false);
                     setEditedVehicle(vehicle);
                   }}>
-                    <Icon name="X" size={16} className="mr-2" />
-                    Отмена
+                    <Icon name="X" size={14} className="mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Отмена</span>
                   </Button>
                   <Button size="sm" className="bg-gradient-to-r from-primary to-secondary" onClick={async () => {
                     try {
@@ -94,29 +96,33 @@ export const VehicleDetailDialog = ({
                         body: JSON.stringify(editedVehicle)
                       });
                       if (response.ok) {
-                        toast({ title: "Сохранено", description: "Данные автомобиля обновлены" });
+                        updateVehicle(editedVehicle.id, editedVehicle);
+                        toast({ title: "✅ Сохранено", description: "Данные автомобиля обновлены мгновенно!" });
                         setIsEditing(false);
-                        window.location.reload();
+                        onOpenChange(false);
+                      } else {
+                        throw new Error('Failed to update vehicle');
                       }
                     } catch (error) {
                       toast({ title: "Ошибка", description: "Не удалось сохранить изменения", variant: "destructive" });
                     }
                   }}>
-                    <Icon name="Save" size={16} className="mr-2" />
-                    Сохранить
+                    <Icon name="Save" size={14} className="mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Сохранить</span>
+                    <span className="sm:hidden">✓</span>
                   </Button>
                 </>
               ) : (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                    <Icon name="Edit" size={16} className="mr-2" />
-                    Редактировать
+                    <Icon name="Edit" size={14} className="sm:mr-2" />
+                    <span className="hidden sm:inline ml-2">Редактировать</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={onShowInsurance}>
+                  <Button variant="outline" size="sm" className="hidden sm:flex" onClick={onShowInsurance}>
                     <Icon name="Shield" size={16} className="mr-2" />
                     Страховка
                   </Button>
-                  <Button variant="outline" size="sm" onClick={onShowMaintenance}>
+                  <Button variant="outline" size="sm" className="hidden sm:flex" onClick={onShowMaintenance}>
                     <Icon name="Wrench" size={16} className="mr-2" />
                     Статус ТО
                   </Button>
@@ -136,10 +142,10 @@ export const VehicleDetailDialog = ({
             {isEditing ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Редактирование данных автомобиля</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Редактирование данных автомобиля</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
                       <Label>Марка и модель</Label>
                       <Input value={editedVehicle.model} onChange={(e) => setEditedVehicle({...editedVehicle, model: e.target.value})} />
@@ -150,18 +156,18 @@ export const VehicleDetailDialog = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label>VIN</Label>
-                      <Input value={editedVehicle.vin} onChange={(e) => setEditedVehicle({...editedVehicle, vin: e.target.value.toUpperCase()})} />
+                      <Label className="text-sm">VIN</Label>
+                      <Input value={editedVehicle.vin || ''} onChange={(e) => setEditedVehicle({...editedVehicle, vin: e.target.value.toUpperCase()})} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Год</Label>
-                      <Input type="number" value={editedVehicle.year} onChange={(e) => setEditedVehicle({...editedVehicle, year: parseInt(e.target.value)})} />
+                      <Label className="text-sm">Год</Label>
+                      <Input type="number" value={editedVehicle.year || ''} onChange={(e) => setEditedVehicle({...editedVehicle, year: parseInt(e.target.value)})} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Цвет</Label>
-                      <Input value={editedVehicle.color} onChange={(e) => setEditedVehicle({...editedVehicle, color: e.target.value})} />
+                      <Label className="text-sm">Цвет</Label>
+                      <Input value={editedVehicle.color || ''} onChange={(e) => setEditedVehicle({...editedVehicle, color: e.target.value})} />
                     </div>
                   </div>
 

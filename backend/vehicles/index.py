@@ -107,6 +107,77 @@ def handler(event, context):
                     'isBase64Encoded': False
                 }
         
+        elif method == 'PUT':
+            data = json.loads(event.get('body', '{}'))
+            vehicle_id = data.get('id')
+            
+            if not vehicle_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Vehicle ID is required'}),
+                    'isBase64Encoded': False
+                }
+            
+            update_fields = []
+            params = []
+            
+            field_mappings = {
+                'model': 'model', 'license_plate': 'license_plate', 'vin': 'vin',
+                'year': 'year', 'color': 'color', 'seats': 'seats', 'category': 'category',
+                'status': 'status', 'current_location': 'current_location',
+                'insurance_expires': 'insurance_expires', 'tech_inspection_expires': 'tech_inspection_expires',
+                'osago_number': 'osago_number', 'kasko_number': 'kasko_number',
+                'last_service_date': 'last_service_date', 'next_service_date': 'next_service_date',
+                'last_service_km': 'last_service_km', 'next_service_km': 'next_service_km',
+                'current_km': 'current_km', 'purchase_price': 'purchase_price',
+                'rental_price_per_day': 'rental_price_per_day', 'rental_price_per_km': 'rental_price_per_km',
+                'sublease_cost': 'sublease_cost', 'notes': 'notes'
+            }
+            
+            for json_key, db_field in field_mappings.items():
+                if json_key in data:
+                    update_fields.append(f'{db_field} = %s')
+                    params.append(data[json_key])
+            
+            if not update_fields:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'No fields to update'}),
+                    'isBase64Encoded': False
+                }
+            
+            update_fields.append('updated_at = CURRENT_TIMESTAMP')
+            params.append(vehicle_id)
+            
+            query = f'''
+                UPDATE t_p81623955_crm_system_creation.fleet
+                SET {', '.join(update_fields)}
+                WHERE id = %s
+                RETURNING id
+            '''
+            
+            cur.execute(query, params)
+            updated_id = cur.fetchone()
+            
+            if not updated_id:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Vehicle not found'}),
+                    'isBase64Encoded': False
+                }
+            
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'body': json.dumps({'id': updated_id[0], 'message': 'Vehicle updated successfully'}),
+                'isBase64Encoded': False
+            }
+        
         elif method == 'POST':
             data = json.loads(event.get('body', '{}'))
             
