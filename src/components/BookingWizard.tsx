@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,8 +53,37 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   ];
 
   const updateData = (key: string, value: any) => {
-    setBookingData({ ...bookingData, [key]: value });
+    setBookingData((prev: any) => ({ ...prev, [key]: value }));
   };
+
+  // Автосохранение при каждом изменении bookingData
+  useEffect(() => {
+    if (!vehicle) return; // Не сохраняем пустую форму
+    
+    const saveBooking = async () => {
+      try {
+        await fetch(BOOKINGS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...bookingData,
+            vehicle_id: vehicle?.id,
+            vehicle_model: vehicle?.model,
+            vehicle_license_plate: vehicle?.license_plate,
+            start_date: startDate?.toISOString(),
+            end_date: endDate?.toISOString(),
+            total_price: calculateTotal(),
+            status: 'Черновик',
+          })
+        });
+      } catch (error) {
+        console.error('Ошибка автосохранения:', error);
+      }
+    };
+
+    const timeoutId = setTimeout(saveBooking, 1000); // Debounce 1 секунда
+    return () => clearTimeout(timeoutId);
+  }, [bookingData]);
 
   const searchClientByPhone = async (phone: string) => {
     if (phone.length < 5) return;
@@ -138,6 +167,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
   const handleSubmit = async () => {
     try {
+      // Финальное сохранение со статусом "Бронь"
       const response = await fetch(BOOKINGS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,18 +179,19 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           start_date: startDate?.toISOString(),
           end_date: endDate?.toISOString(),
           total_price: calculateTotal(),
-          status: 'Бронь',
+          status: 'Бронь', // Финальный статус
         })
       });
 
       if (!response.ok) throw new Error('Failed to create booking');
 
       toast({
-        title: 'Бронь создана',
+        title: '✅ Бронь создана',
         description: 'Заявка успешно оформлена',
       });
       
       onOpenChange(false);
+      window.location.reload(); // Обновляем список броней
     } catch (error) {
       toast({
         title: 'Ошибка',
