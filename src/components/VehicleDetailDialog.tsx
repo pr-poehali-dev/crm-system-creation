@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,13 @@ export const VehicleDetailDialog = ({
 }: VehicleDetailDialogProps) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedVehicle, setEditedVehicle] = useState(vehicle);
+  const [editedVehicle, setEditedVehicle] = useState(vehicle || {});
+
+  useEffect(() => {
+    if (vehicle) {
+      setEditedVehicle(vehicle);
+    }
+  }, [vehicle]);
 
   if (!vehicle) return null;
 
