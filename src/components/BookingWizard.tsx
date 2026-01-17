@@ -20,6 +20,7 @@ interface BookingWizardProps {
 }
 
 const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
+const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57';
 
 export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate }: BookingWizardProps) => {
   const { toast } = useToast();
@@ -38,8 +39,10 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     planned_km_total: 0,
     services: [],
     payments: [],
-    deposit_amount: 10000,
+    deposit_amount: 0,
   });
+  const [clients, setClients] = useState<any[]>([]);
+  const [isLoadingClients, setIsLoadingClients] = useState(false);
 
   const additionalServices = [
     { id: 'transponder', name: 'Транспондер', price: 500 },
@@ -52,6 +55,39 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   const updateData = (key: string, value: any) => {
     setBookingData({ ...bookingData, [key]: value });
   };
+
+  const searchClientByPhone = async (phone: string) => {
+    if (phone.length < 5) return;
+    
+    try {
+      setIsLoadingClients(true);
+      const response = await fetch(CLIENTS_API);
+      const data = await response.json();
+      const foundClient = data.clients?.find((c: any) => 
+        c.phone.replace(/\D/g, '').includes(phone.replace(/\D/g, ''))
+      );
+      
+      if (foundClient) {
+        setBookingData((prev: any) => ({
+          ...prev,
+          client_name: foundClient.name,
+          client_phone: foundClient.phone,
+          client_email: foundClient.email || '',
+          client_city: foundClient.city || '',
+        }));
+        toast({
+          title: '✅ Клиент найден',
+          description: `Данные ${foundClient.name} подтянуты из базы`,
+        });
+      }
+    } catch (error) {
+      console.error('Error searching client:', error);
+    } finally {
+      setIsLoadingClients(false);
+    }
+  };\n\n  const searchClientByName = async (name: string) => {
+    if (name.length < 3) return;
+    \n    try {\n      setIsLoadingClients(true);\n      const response = await fetch(CLIENTS_API);\n      const data = await response.json();\n      const foundClient = data.clients?.find((c: any) => \n        c.name.toLowerCase().includes(name.toLowerCase())\n      );\n      \n      if (foundClient) {\n        setBookingData((prev: any) => ({\n          ...prev,\n          client_name: foundClient.name,\n          client_phone: foundClient.phone,\n          client_email: foundClient.email || '',\n          client_city: foundClient.city || '',\n        }));\n        toast({\n          title: '✅ Клиент найден',\n          description: `Данные ${foundClient.name} подтянуты из базы`,\n        });\n      }\n    } catch (error) {\n      console.error('Error searching client:', error);\n    } finally {\n      setIsLoadingClients(false);\n    }\n  };"}
 
   const calculateTotal = () => {
     let total = 0;
@@ -212,7 +248,14 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                   </Label>
                   <Select 
                     value={bookingData.pickup_location_type || ''} 
-                    onValueChange={(value) => updateData('pickup_location_type', value)}
+                    onValueChange={(value) => {
+                      updateData('pickup_location_type', value);
+                      if (value === 'office') {
+                        updateData('pickup_location', 'Офис');
+                      } else {
+                        updateData('pickup_location', '');
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите место" />
@@ -224,18 +267,17 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                       <SelectItem value="custom">Свой адрес</SelectItem>
                     </SelectContent>
                   </Select>
-                  {(bookingData.pickup_location_type === 'hotel' || 
-                    bookingData.pickup_location_type === 'airport' || 
-                    bookingData.pickup_location_type === 'custom') && (
+                  {bookingData.pickup_location_type && bookingData.pickup_location_type !== 'office' && (
                     <Input
                       placeholder={
-                        bookingData.pickup_location_type === 'hotel' ? 'Название отеля' :
-                        bookingData.pickup_location_type === 'airport' ? 'Название аэропорта' :
-                        'Адрес'
+                        bookingData.pickup_location_type === 'hotel' ? 'Название отеля *' :
+                        bookingData.pickup_location_type === 'airport' ? 'Название аэропорта *' :
+                        'Адрес *'
                       }
                       value={bookingData.pickup_location || ''}
                       onChange={(e) => updateData('pickup_location', e.target.value)}
                       className="mt-2"
+                      required
                     />
                   )}
                 </div>
@@ -247,7 +289,14 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                   </Label>
                   <Select 
                     value={bookingData.dropoff_location_type || ''} 
-                    onValueChange={(value) => updateData('dropoff_location_type', value)}
+                    onValueChange={(value) => {
+                      updateData('dropoff_location_type', value);
+                      if (value === 'office') {
+                        updateData('dropoff_location', 'Офис');
+                      } else {
+                        updateData('dropoff_location', '');
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите место" />
@@ -259,18 +308,17 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                       <SelectItem value="custom">Свой адрес</SelectItem>
                     </SelectContent>
                   </Select>
-                  {(bookingData.dropoff_location_type === 'hotel' || 
-                    bookingData.dropoff_location_type === 'airport' || 
-                    bookingData.dropoff_location_type === 'custom') && (
+                  {bookingData.dropoff_location_type && bookingData.dropoff_location_type !== 'office' && (
                     <Input
                       placeholder={
-                        bookingData.dropoff_location_type === 'hotel' ? 'Название отеля' :
-                        bookingData.dropoff_location_type === 'airport' ? 'Название аэропорта' :
-                        'Адрес'
+                        bookingData.dropoff_location_type === 'hotel' ? 'Название отеля *' :
+                        bookingData.dropoff_location_type === 'airport' ? 'Название аэропорта *' :
+                        'Адрес *'
                       }
                       value={bookingData.dropoff_location || ''}
                       onChange={(e) => updateData('dropoff_location', e.target.value)}
                       className="mt-2"
+                      required
                     />
                   )}
                 </div>
@@ -367,43 +415,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Место выдачи *</Label>
-                  <Select 
-                    value={bookingData.pickup_location}
-                    onValueChange={(val) => updateData('pickup_location', val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите место" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="office">Наш офис (бесплатно)</SelectItem>
-                      <SelectItem value="airport">Аэропорт</SelectItem>
-                      <SelectItem value="hotel">Отель</SelectItem>
-                      <SelectItem value="address">По адресу</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Место возврата *</Label>
-                  <Select
-                    value={bookingData.dropoff_location}
-                    onValueChange={(val) => updateData('dropoff_location', val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите место" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="office">Наш офис (бесплатно)</SelectItem>
-                      <SelectItem value="airport">Аэропорт</SelectItem>
-                      <SelectItem value="hotel">Отель</SelectItem>
-                      <SelectItem value="address">По адресу</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
               <div className="space-y-2">
                 <Label>
@@ -412,8 +424,8 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 </Label>
                 <Input
                   type="number"
-                  placeholder="Введите сумму залога"
-                  value={bookingData.deposit_amount || ''}
+                  placeholder="0"
+                  value={bookingData.deposit_amount || 0}
                   onChange={(e) => updateData('deposit_amount', e.target.value ? Number(e.target.value) : 0)}
                 />
                 <p className="text-xs text-muted-foreground">Залог возвращается в день сдачи авто</p>
@@ -426,15 +438,18 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Фамилия *</Label>
+                <Label>Фамилия * (начните вводить ФИО для поиска)</Label>
                 <Input
                   value={bookingData.client_name?.split(' ')[0] || ''}
                   onChange={(e) => {
                     const parts = bookingData.client_name?.split(' ') || ['', '', ''];
                     parts[0] = e.target.value;
-                    updateData('client_name', parts.join(' ').trim());
+                    const fullName = parts.join(' ').trim();
+                    updateData('client_name', fullName);
+                    searchClientByName(fullName);
                   }}
                 />
+                {isLoadingClients && <p className=\"text-xs text-blue-600\">🔍 Поиск клиента в базе...</p>}
               </div>
 
               <div className="space-y-2">
@@ -480,13 +495,17 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
               </div>
 
               <div className="space-y-2">
-                <Label>Телефон *</Label>
+                <Label>Телефон * (начните вводить для поиска)</Label>
                 <Input
                   type="tel"
                   value={bookingData.client_phone}
-                  onChange={(e) => updateData('client_phone', e.target.value)}
+                  onChange={(e) => {
+                    updateData('client_phone', e.target.value);
+                    searchClientByPhone(e.target.value);
+                  }}
                   placeholder="+7 (999) 123-45-67"
                 />
+                {isLoadingClients && <p className="text-xs text-blue-600">🔍 Поиск клиента в базе...</p>}
               </div>
             </div>
 
