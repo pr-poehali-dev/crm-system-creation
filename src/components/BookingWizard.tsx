@@ -27,6 +27,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   const [step, setStep] = useState(1);
   const [bookingData, setBookingData] = useState<any>({
     booking_type: 'rent',
+    request_type: 'rent',
     route_type: 'russia',
     client_is_foreign: false,
     fuel_policy: 'full-to-full',
@@ -41,9 +42,26 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     payments: [],
     deposit_amount: 0,
   });
+
+  // Загрузка автомобилей
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f');
+        const data = await response.json();
+        setVehicles(data.vehicles || []);
+      } catch (error) {
+        console.error('Error loading vehicles:', error);
+      }
+    };
+    if (open) loadVehicles();
+  }, [open]);
   const [clients, setClients] = useState<any[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(vehicle || null);
+  const [requestType, setRequestType] = useState<'rent' | 'service'>('rent');
 
   const additionalServices = [
     { id: 'transponder', name: 'Транспондер', price: 500 },
@@ -59,7 +77,8 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
   // Автосохранение при каждом изменении bookingData
   useEffect(() => {
-    if (!vehicle) return;
+    // Для услуг не требуется машина
+    if (requestType === 'rent' && !selectedVehicle) return;
     
     const saveBooking = async () => {
       try {
@@ -69,9 +88,10 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...bookingData,
-            vehicle_id: vehicle?.id,
-            vehicle_model: vehicle?.model,
-            vehicle_license_plate: vehicle?.license_plate,
+            request_type: requestType,
+            vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
+            vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
+            vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
             start_date: startDate?.toISOString(),
             end_date: endDate?.toISOString(),
             total_price: calculateTotal(),
@@ -88,7 +108,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
     const timeoutId = setTimeout(saveBooking, 1000);
     return () => clearTimeout(timeoutId);
-  }, [bookingData]);
+  }, [bookingData, selectedVehicle, requestType]);
 
   const searchClientByPhone = async (phone: string) => {
     if (phone.length < 5) return;
@@ -178,20 +198,22 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...bookingData,
-          vehicle_id: vehicle?.id,
-          vehicle_model: vehicle?.model,
-          vehicle_license_plate: vehicle?.license_plate,
+          request_type: requestType,
+          vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
+          vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
+          vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
           start_date: startDate?.toISOString(),
           end_date: endDate?.toISOString(),
           total_price: calculateTotal(),
-          status: 'Бронь', // Финальный статус
+          status: requestType === 'rent' ? 'Бронь' : 'Услуга',
         })
       });
 
       if (!response.ok) throw new Error('Failed to create booking');
 
+      const statusText = requestType === 'rent' ? 'Бронь создана' : 'Услуга создана';
       toast({
-        title: '✅ Бронь создана',
+        title: `✅ ${statusText}`,
         description: 'Заявка успешно оформлена',
       });
       
@@ -219,14 +241,15 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           <DialogTitle className="flex items-center justify-between">
             <div>
               <div className="text-xl flex items-center gap-2">
-                Заявка на бронь {vehicle ? `${vehicle.model} #${vehicle.license_plate.slice(-3)}` : ''}
+                {requestType === 'rent' ? '🚗 Заявка на аренду' : '🔧 Заявка на услугу'}
+                {selectedVehicle && ` — ${selectedVehicle.model} #${selectedVehicle.license_plate.slice(-3)}`}
                 {saveStatus === 'saving' && <span className="text-xs text-blue-500">💾 Сохранение...</span>}
                 {saveStatus === 'saved' && <span className="text-xs text-green-500">✓ Сохранено</span>}
                 {saveStatus === 'error' && <span className="text-xs text-red-500">⚠ Ошибка</span>}
               </div>
-              {startDate && endDate && (
+              {startDate && endDate && requestType === 'rent' && (
                 <div className="text-sm text-muted-foreground mt-1">
-                  Период аренды: {startDate.toLocaleDateString()} ~ {endDate.toLocaleDateString()}
+                  Период: {startDate.toLocaleDateString()} ~ {endDate.toLocaleDateString()}
                 </div>
               )}
             </div>
@@ -271,19 +294,56 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>
-                  <Icon name="Car" size={16} className="inline mr-2" />
-                  Выбор автомобиля *
+                  <Icon name="FileText" size={16} className="inline mr-2" />
+                  Тип заявки *
                 </Label>
                 <Select 
-                  value={bookingData.vehicle_selection || ''} 
-                  onValueChange={(value) => updateData('vehicle_selection', value)}
+                  value={requestType} 
+                  onValueChange={(value: 'rent' | 'service') => {
+                    setRequestType(value);
+                    updateData('request_type', value);
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите автомобиль или оставьте без выбора" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rent">🚗 Аренда автомобиля</SelectItem>
+                    <SelectItem value="service">🔧 Услуга (без аренды)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  <Icon name="Car" size={16} className="inline mr-2" />
+                  Выбор автомобиля {requestType === 'rent' ? '*' : '(необязательно)'}
+                </Label>
+                <Select 
+                  value={selectedVehicle?.id?.toString() || 'none'} 
+                  onValueChange={(value) => {
+                    if (value === 'none') {
+                      setSelectedVehicle(null);
+                      updateData('vehicle_id', null);
+                    } else {
+                      const selected = vehicles.find(v => v.id.toString() === value);
+                      setSelectedVehicle(selected);
+                      updateData('vehicle_id', selected?.id);
+                      updateData('vehicle_model', selected?.model);
+                      updateData('vehicle_license_plate', selected?.license_plate);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите автомобиль" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Без выбора (подобрать позже)</SelectItem>
-                    {vehicle && <SelectItem value={vehicle.id}>{vehicle.model} {vehicle.license_plate}</SelectItem>}
+                    {vehicles.map(v => (
+                      <SelectItem key={v.id} value={v.id.toString()}>
+                        {v.model} ({v.license_plate})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
