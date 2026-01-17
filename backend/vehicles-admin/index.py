@@ -45,7 +45,10 @@ def handler(event, context):
         action = params.get('action', 'delete')
         
         if action == 'clear':
-            # Удаляем ВСЕ автомобили из базы
+            # Сначала удаляем связанные записи в requests
+            cur.execute('UPDATE t_p81623955_crm_system_creation.requests SET fleet_id = NULL WHERE fleet_id IS NOT NULL')
+            
+            # Теперь удаляем ВСЕ автомобили из базы
             cur.execute('DELETE FROM t_p81623955_crm_system_creation.fleet')
             deleted_count = cur.rowcount
             conn.commit()
@@ -71,6 +74,13 @@ def handler(event, context):
                     'isBase64Encoded': False
                 }
             
+            # Сначала удаляем связь с requests
+            cur.execute(
+                'UPDATE t_p81623955_crm_system_creation.requests SET fleet_id = NULL WHERE fleet_id = %s',
+                (vehicle_id,)
+            )
+            
+            # Теперь удаляем автомобиль
             cur.execute(
                 'DELETE FROM t_p81623955_crm_system_creation.fleet WHERE id = %s',
                 (vehicle_id,)
