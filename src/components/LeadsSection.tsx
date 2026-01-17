@@ -84,8 +84,10 @@ export const LeadsSection = () => {
         setLeads(formattedLeads);
         
         toast({
-          title: "Диалоги загружены",
-          description: `Загружено ${data.count} ${data.count === 1 ? 'сообщение' : 'сообщений'} из Avito`,
+          title: data.demo ? "Демо-данные загружены" : "Лиды загружены из Avito",
+          description: data.demo 
+            ? `${data.count} примеров лидов для демонстрации. ${data.message}`
+            : `Загружено ${data.count} лидов из Avito`,
         });
       } else {
         throw new Error('Неверный формат ответа');
