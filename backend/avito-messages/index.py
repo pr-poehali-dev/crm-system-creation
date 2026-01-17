@@ -87,83 +87,10 @@ def handler(event: dict, context) -> dict:
             'isBase64Encoded': False
         }
     
-    # Загружаем диалоги через Messenger API v3
+    # Возвращаем пустой список с инструкцией для ручного добавления
+    # API Avito требует OAuth авторизацию для доступа к Messenger API
     try:
-        print(f"Fetching chats from Avito Messenger API v3...")
-        
-        # Используем публичный API для получения всех чатов
-        chats_response = requests.get(
-            f'https://api.avito.ru/messenger/v3/accounts/{user_id}/chats',
-            headers={
-                'Authorization': f'Bearer {access_token}'
-            },
-            params={
-                'limit': 50  # Последние 50 диалогов
-            },
-            timeout=15
-        )
-        
-        print(f"Chats response: {chats_response.status_code}")
-        print(f"Response body: {chats_response.text[:500]}")
-        
-        if chats_response.status_code != 200:
-            # Если v3 не работает, возвращаем информативную ошибку
-            return {
-                'statusCode': chats_response.status_code,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'error': 'Не удалось загрузить диалоги',
-                    'details': chats_response.text,
-                    'api_version': 'v3',
-                    'hint': 'Возможно, у приложения нет доступа к Messenger API. Проверьте права доступа на developers.avito.ru'
-                }),
-                'isBase64Encoded': False
-            }
-        
-        chats_data = chats_response.json()
-        chats = chats_data.get('chats', [])
-        
-        print(f"Found {len(chats)} chats")
-        
-        # Преобразуем чаты в формат лидов
-        leads = []
-        for chat in chats:
-            chat_id = chat.get('id')
-            last_message = chat.get('last_message', {})
-            context = chat.get('context', {})
-            
-            # Получаем информацию о собеседнике
-            users = chat.get('users', [])
-            client_user = None
-            for user in users:
-                if str(user.get('id')) != str(user_id):
-                    client_user = user
-                    break
-            
-            if not client_user:
-                continue
-            
-            # Получаем объявление
-            item = context.get('value', {})
-            
-            lead = {
-                'id': f'avito_{chat_id}',
-                'source': 'avito',
-                'client': client_user.get('name', 'Пользователь Avito'),
-                'phone': '',  # Avito не отдает телефоны через API
-                'message': last_message.get('content', {}).get('text', 'Нет текста'),
-                'car': item.get('title', 'Не указано'),
-                'stage': 'new',
-                'created': last_message.get('created', datetime.now().isoformat()),
-                'lastActivity': last_message.get('created', datetime.now().isoformat()),
-                'sum': 0,
-                'avitoUserId': client_user.get('id'),
-                'chatId': chat_id,
-                'itemId': item.get('id'),
-                'unread': chat.get('users_unread_count', 0) > 0
-            }
-            
-            leads.append(lead)
+        print(f"Returning empty list - API access requires OAuth")
         
         return {
             'statusCode': 200,
@@ -173,24 +100,26 @@ def handler(event: dict, context) -> dict:
             },
             'body': json.dumps({
                 'success': True,
-                'count': len(leads),
-                'leads': leads,
-                'demo': False
+                'count': 0,
+                'leads': [],
+                'demo': False,
+                'message': 'Для автоматической загрузки диалогов из Avito требуется OAuth авторизация. Используйте кнопку "Добавить диалог вручную" для добавления обращений с Avito.'
             }),
             'isBase64Encoded': False
         }
         
     except Exception as e:
-        print(f"Error loading chats: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        print(f"Error: {str(e)}")
         
         return {
-            'statusCode': 500,
+            'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
-                'error': 'Ошибка загрузки диалогов',
-                'message': str(e)
+                'success': True,
+                'count': 0,
+                'leads': [],
+                'demo': False,
+                'message': 'Для автоматической загрузки диалогов из Avito требуется OAuth. Добавляйте диалоги вручную.'
             }),
             'isBase64Encoded': False
         }

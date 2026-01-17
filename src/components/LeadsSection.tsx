@@ -73,7 +73,7 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
       
       const data = await response.json();
       
-      if (data.success && data.leads) {
+      if (data.success) {
         // Форматируем даты для отображения
         const formattedLeads = data.leads.map((lead: any) => ({
           ...lead,
@@ -95,12 +95,17 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
         
         setLeads(formattedLeads);
         
-        toast({
-          title: data.demo ? "Демо-данные загружены" : "Диалоги загружены из Avito",
-          description: data.demo 
-            ? `${data.count} примеров лидов для демонстрации`
-            : `Загружено ${data.count} реальных диалогов с Avito. Подтвердите нужные и переведите в клиенты.`,
-        });
+        if (data.count === 0) {
+          toast({
+            title: "Ручной режим работы",
+            description: data.message || "Добавляйте диалоги из Avito вручную через кнопку 'Добавить диалог вручную'",
+          });
+        } else {
+          toast({
+            title: "Диалоги загружены",
+            description: `Загружено ${data.count} диалогов с Avito`,
+          });
+        }
       } else {
         throw new Error('Неверный формат ответа');
       }
