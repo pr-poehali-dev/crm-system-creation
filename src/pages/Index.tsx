@@ -50,6 +50,7 @@ const Index = () => {
   const [isBookingDetailOpen, setIsBookingDetailOpen] = useState(false);
   const [isHandoverOpen, setIsHandoverOpen] = useState(false);
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [clientDataFromLead, setClientDataFromLead] = useState<{ name: string; phone: string } | null>(null);
   const [newRequest, setNewRequest] = useState({
     client: '',
