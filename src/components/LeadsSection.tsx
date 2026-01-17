@@ -28,9 +28,10 @@ interface Lead {
 
 interface LeadsSectionProps {
   onConvertToClient?: (leadData: { name: string; phone: string }) => void;
+  onOpenDetailForm?: () => void;
 }
 
-export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
+export const LeadsSection = ({ onConvertToClient, onOpenDetailForm }: LeadsSectionProps = {}) => {
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeStage, setActiveStage] = useState<string>('all');
@@ -214,10 +215,10 @@ export const LeadsSection = ({ onConvertToClient }: LeadsSectionProps = {}) => {
               </Button>
               <Button 
                 className="bg-gradient-to-r from-primary to-secondary"
-                onClick={() => setIsAddLeadOpen(true)}
+                onClick={() => onOpenDetailForm?.()}
               >
-                <Icon name="Plus" size={18} className="mr-2" />
-                Добавить один
+                <Icon name="UserPlus" size={18} className="mr-2" />
+                Создать лида
               </Button>
             </div>
           </div>

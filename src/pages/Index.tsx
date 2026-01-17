@@ -9,6 +9,8 @@ import IntegrationsPage from '@/components/IntegrationsPage';
 import LeadsSection from '@/components/LeadsSection';
 import ClientsSection from '@/components/ClientsSection';
 import LoginPage from '@/components/LoginPage';
+import PartnersSection from '@/components/PartnersSection';
+import LeadDetailForm from '@/components/LeadDetailForm';
 import AddVehicleDialog from '@/components/AddVehicleDialog';
 import VehicleChecklistDialog from '@/components/VehicleChecklistDialog';
 import VehicleDetailDialog from '@/components/VehicleDetailDialog';
@@ -51,6 +53,7 @@ const Index = () => {
   const [isHandoverOpen, setIsHandoverOpen] = useState(false);
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLeadDetailFormOpen, setIsLeadDetailFormOpen] = useState(false);
   const [clientDataFromLead, setClientDataFromLead] = useState<{ name: string; phone: string } | null>(null);
   const [newRequest, setNewRequest] = useState({
     client: '',
@@ -222,6 +225,7 @@ const Index = () => {
           { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
           { id: 'requests', icon: 'ClipboardList', label: 'Заявки' },
           { id: 'clients', icon: 'Users', label: 'Клиенты' },
+          { id: 'partners', icon: 'Handshake', label: 'Партнёры' },
           { id: 'fleet', icon: 'Car', label: 'Автопарк' },
           { id: 'services', icon: 'Wrench', label: 'Услуги' },
           { id: 'finance', icon: 'Wallet', label: 'Финансы' },
@@ -1240,7 +1244,15 @@ const Index = () => {
             </Card>
           )}
 
-          {activeSection === 'leads' && <LeadsSection />}
+          {activeSection === 'leads' && (
+            <LeadsSection 
+              onConvertToClient={(leadData) => {
+                setClientDataFromLead(leadData);
+                setActiveSection('clients');
+              }}
+              onOpenDetailForm={() => setIsLeadDetailFormOpen(true)}
+            />
+          )}
 
           {activeSection === 'calendar' && <CalendarSection />}
 
@@ -1517,6 +1529,20 @@ const Index = () => {
         startDate={newRequest.startDate}
         endDate={newRequest.endDate}
       />
+
+      <LeadDetailForm
+        open={isLeadDetailFormOpen}
+        onOpenChange={setIsLeadDetailFormOpen}
+        onSave={(leadData) => {
+          console.log('Lead saved:', leadData);
+          toast({
+            title: 'Лид сохранён',
+            description: 'Данные успешно добавлены в систему',
+          });
+        }}
+      />
+
+      {activeSection === 'partners' && <PartnersSection />}
     </div>
   );
 };

@@ -164,43 +164,25 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
         {step === 1 && (
           <div className="space-y-6">
-            <Card className="bg-purple-50 border-purple-200">
-              <CardContent className="pt-6">
-                <div className="text-right mb-4">
-                  <div className="text-3xl font-bold">
-                    {calculateTotal().toLocaleString()} + {bookingData.deposit_amount?.toLocaleString()}* 
-                    <span className="text-muted-foreground text-lg ml-2">(залог)</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    * залог возвращается в день сдачи авто
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="font-medium">Включено в стоимость:</div>
-                  <div className="text-sm space-y-2">
-                    {bookingData.rental_days && (
-                      <div className="flex justify-between">
-                        <span>{bookingData.rental_days} суток аренды</span>
-                        <span className="font-medium">
-                          {(bookingData.rental_price_per_day * bookingData.rental_days).toLocaleString()} руб
-                        </span>
-                      </div>
-                    )}
-                    {bookingData.planned_km_total > 0 && (
-                      <div className="flex justify-between">
-                        <span>пробег {bookingData.planned_km_total} км</span>
-                        <span className="font-medium">
-                          {(bookingData.planned_km_total * (bookingData.rental_price_per_km || 0)).toLocaleString()} руб
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>
+                  <Icon name="Car" size={16} className="inline mr-2" />
+                  Выбор автомобиля *
+                </Label>
+                <Select 
+                  value={bookingData.vehicle_selection || ''} 
+                  onValueChange={(value) => updateData('vehicle_selection', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите автомобиль или оставьте без выбора" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Без выбора (подобрать позже)</SelectItem>
+                    {vehicle && <SelectItem value={vehicle.id}>{vehicle.model} {vehicle.license_plate}</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -421,6 +403,20 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  <Icon name="Wallet" size={16} className="inline mr-2" />
+                  Залог (необязательно)
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="Введите сумму залога"
+                  value={bookingData.deposit_amount || ''}
+                  onChange={(e) => updateData('deposit_amount', e.target.value ? Number(e.target.value) : 0)}
+                />
+                <p className="text-xs text-muted-foreground">Залог возвращается в день сдачи авто</p>
               </div>
             </div>
           </div>
