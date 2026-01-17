@@ -110,6 +110,93 @@ def handler(event, context):
         elif method == 'POST':
             data = json.loads(event.get('body', '{}'))
             
+            action = event.get('queryStringParameters', {}).get('action')
+            
+            if action == 'handover':
+                cur.execute('''
+                    INSERT INTO t_p81623955_crm_system_creation.vehicle_handovers (
+                        handover_id, vehicle_id, booking_id, type, handover_date, handover_time,
+                        odometer, fuel_level, transponder_needed, transponder_number,
+                        deposit_amount, rental_amount, rental_payment_method, rental_receipt_url,
+                        damages, notes, custom_fields, created_by
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                ''', (
+                    data.get('handover_id'),
+                    data.get('vehicle_id'),
+                    data.get('booking_id'),
+                    data.get('type'),
+                    data.get('handover_date'),
+                    data.get('handover_time'),
+                    data.get('odometer'),
+                    data.get('fuel_level'),
+                    data.get('transponder_needed', False),
+                    data.get('transponder_number'),
+                    data.get('deposit_amount', 0),
+                    data.get('rental_amount', 0),
+                    data.get('rental_payment_method'),
+                    data.get('rental_receipt_url'),
+                    data.get('damages'),
+                    data.get('notes'),
+                    json.dumps(data.get('custom_fields', {})),
+                    data.get('created_by')
+                ))
+                
+                handover_id = cur.fetchone()[0]
+                conn.commit()
+                
+                return {
+                    'statusCode': 201,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'id': handover_id, 'message': 'Handover recorded successfully'}),
+                    'isBase64Encoded': False
+                }
+            
+            if action == 'handover_history':
+                vehicle_id = data.get('vehicle_id')
+                if not vehicle_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'vehicle_id is required'}),
+                        'isBase64Encoded': False
+                    }
+                
+                cur.execute('''
+                    SELECT id, handover_id, type, handover_date, handover_time,
+                           odometer, fuel_level, deposit_amount, rental_amount,
+                           rental_payment_method, transponder_number, notes, created_at
+                    FROM t_p81623955_crm_system_creation.vehicle_handovers
+                    WHERE vehicle_id = %s
+                    ORDER BY handover_date DESC, handover_time DESC
+                ''', (vehicle_id,))
+                
+                rows = cur.fetchall()
+                history = []
+                for row in rows:
+                    history.append({
+                        'id': row[0],
+                        'handover_id': row[1],
+                        'type': row[2],
+                        'handover_date': str(row[3]),
+                        'handover_time': str(row[4]),
+                        'odometer': row[5],
+                        'fuel_level': row[6],
+                        'deposit_amount': float(row[7]) if row[7] else 0,
+                        'rental_amount': float(row[8]) if row[8] else 0,
+                        'rental_payment_method': row[9],
+                        'transponder_number': row[10],
+                        'notes': row[11],
+                        'created_at': str(row[12])
+                    })
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'handovers': history, 'total': len(history)}),
+                    'isBase64Encoded': False
+                }
+            
             cur.execute('''
                 INSERT INTO t_p81623955_crm_system_creation.fleet (
                     branch_id, model, license_plate, vin, year, color, seats, category,

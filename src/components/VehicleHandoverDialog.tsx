@@ -59,7 +59,7 @@ export const VehicleHandoverDialog = ({
     setCustomFields(customFields.filter(f => f.id !== id));
   };
 
-  const handleHandover = () => {
+  const handleHandover = async () => {
     if (!handoverData.odometer) {
       toast({
         title: "Заполните показания спидометра",
@@ -77,32 +77,65 @@ export const VehicleHandoverDialog = ({
       return;
     }
 
-    console.log('Handover data:', {
-      mode,
-      vehicle: vehicle?.license_plate || booking?.vehicle?.license_plate,
-      ...handoverData,
-      custom_fields: customFields.filter(f => f.name && f.value)
-    });
+    try {
+      const handoverPayload = {
+        handover_id: `HO-${Date.now()}`,
+        vehicle_id: vehicle?.id || booking?.vehicle_id,
+        booking_id: booking?.id,
+        type: mode,
+        handover_date: handoverData.date,
+        handover_time: handoverData.time,
+        odometer: handoverData.odometer,
+        fuel_level: handoverData.fuel_level,
+        transponder_needed: handoverData.transponder_needed,
+        transponder_number: handoverData.transponder_number,
+        deposit_amount: handoverData.deposit_amount,
+        rental_amount: handoverData.rental_amount,
+        rental_payment_method: handoverData.rental_payment_method,
+        rental_receipt_url: null,
+        damages: handoverData.damages,
+        notes: handoverData.notes,
+        custom_fields: customFields.filter(f => f.name && f.value),
+        created_by: 'user'
+      };
 
-    toast({
-      title: mode === 'pickup' ? "Автомобиль выдан" : "Автомобиль принят",
-      description: `${vehicle?.model || booking?.vehicle?.model || 'Автомобиль'} • Пробег: ${handoverData.odometer} км • Топливо: ${handoverData.fuel_level}`,
-    });
-    onOpenChange(false);
-    setHandoverData({
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
-      odometer: '',
-      fuel_level: '',
-      transponder_needed: false,
-      transponder_number: '',
-      notes: '',
-      damages: '',
-      deposit_amount: 0,
-      rental_amount: 0,
-      rental_payment_method: 'cash',
-      rental_receipt: null,
-    });
+      const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f?action=handover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(handoverPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save handover');
+      }
+
+      toast({
+        title: mode === 'pickup' ? "Автомобиль выдан" : "Автомобиль принят",
+        description: `${vehicle?.model || booking?.vehicle?.model || 'Автомобиль'} • Пробег: ${handoverData.odometer} • Топливо: ${handoverData.fuel_level}`,
+      });
+      
+      onOpenChange(false);
+      setHandoverData({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}),
+        odometer: '',
+        fuel_level: '',
+        transponder_needed: false,
+        transponder_number: '',
+        notes: '',
+        damages: '',
+        deposit_amount: 0,
+        rental_amount: 0,
+        rental_payment_method: 'cash',
+        rental_receipt: null,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка сохранения",
+        description: "Не удалось сохранить данные выдачи/приёма",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ import VehicleDetailDialog from '@/components/VehicleDetailDialog';
 import MaintenanceStatusDialog from '@/components/MaintenanceStatusDialog';
 import BookingDetailDialog from '@/components/BookingDetailDialog';
 import VehicleHandoverDialog from '@/components/VehicleHandoverDialog';
+import VehicleHandoverHistory from '@/components/VehicleHandoverHistory';
 import BookingWizard from '@/components/BookingWizard';
 import MobileNav from '@/components/MobileNav';
 import DateClickCalendar from '@/components/DateClickCalendar';
@@ -53,6 +54,7 @@ const Index = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isBookingDetailOpen, setIsBookingDetailOpen] = useState(false);
   const [isHandoverOpen, setIsHandoverOpen] = useState(false);
+  const [isHandoverHistoryOpen, setIsHandoverHistoryOpen] = useState(false);
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLeadDetailFormOpen, setIsLeadDetailFormOpen] = useState(false);
@@ -1163,6 +1165,17 @@ const Index = () => {
                         <Button 
                           size="sm" 
                           variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedVehicle(car);
+                            setIsHandoverHistoryOpen(true);
+                          }}
+                        >
+                          <Icon name="History" size={14} />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
                           className="border-destructive text-destructive hover:bg-destructive hover:text-white"
                           onClick={async (e) => {
                             e.stopPropagation();
@@ -1514,6 +1527,12 @@ const Index = () => {
           setIsDateCalendarOpen(false);
           setActiveSection('calendar');
         }}
+      />
+
+      <VehicleHandoverHistory
+        open={isHandoverHistoryOpen}
+        onOpenChange={setIsHandoverHistoryOpen}
+        vehicle={selectedVehicle}
       />
     </div>
   );
