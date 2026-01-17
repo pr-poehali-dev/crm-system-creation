@@ -107,11 +107,26 @@ export const IntegrationsPage = () => {
 
   const handleSaveConfig = () => {
     if (selectedIntegration) {
+      setIntegrations(integrations.map(int => 
+        int.id === selectedIntegration.id ? selectedIntegration : int
+      ));
       toast({
         title: "Настройки сохранены",
         description: `Конфигурация ${selectedIntegration.name} успешно сохранена`,
       });
       setSelectedIntegration(null);
+    }
+  };
+
+  const updateConfig = (field: string, value: string) => {
+    if (selectedIntegration) {
+      setSelectedIntegration({
+        ...selectedIntegration,
+        config: {
+          ...selectedIntegration.config,
+          [field]: value
+        }
+      });
     }
   };
 
@@ -233,6 +248,7 @@ export const IntegrationsPage = () => {
                           id="avito_client_id" 
                           placeholder="Введите Client ID из личного кабинета Avito"
                           value={selectedIntegration.config.client_id}
+                          onChange={(e) => updateConfig('client_id', e.target.value)}
                         />
                       </div>
 
@@ -243,6 +259,7 @@ export const IntegrationsPage = () => {
                           type="password"
                           placeholder="Введите Client Secret"
                           value={selectedIntegration.config.client_secret}
+                          onChange={(e) => updateConfig('client_secret', e.target.value)}
                         />
                       </div>
 
@@ -252,6 +269,7 @@ export const IntegrationsPage = () => {
                           id="avito_user_id" 
                           placeholder="Ваш ID пользователя Avito"
                           value={selectedIntegration.config.user_id}
+                          onChange={(e) => updateConfig('user_id', e.target.value)}
                         />
                       </div>
                     </TabsContent>
@@ -305,6 +323,7 @@ export const IntegrationsPage = () => {
                         type="password"
                         placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
                         value={selectedIntegration.config.bot_token}
+                        onChange={(e) => updateConfig('bot_token', e.target.value)}
                       />
                       <p className="text-xs text-muted-foreground">
                         Получить токен: <a href="https://t.me/BotFather" target="_blank" className="text-primary hover:underline">@BotFather</a>
@@ -317,6 +336,7 @@ export const IntegrationsPage = () => {
                         id="chat_id" 
                         placeholder="-1001234567890"
                         value={selectedIntegration.config.chat_id}
+                        onChange={(e) => updateConfig('chat_id', e.target.value)}
                       />
                       <p className="text-xs text-muted-foreground">
                         ID чата или группы для уведомлений
@@ -348,6 +368,7 @@ export const IntegrationsPage = () => {
                         type="password"
                         placeholder="Ключ от WhatsApp Business API"
                         value={selectedIntegration.config.api_key}
+                        onChange={(e) => updateConfig('api_key', e.target.value)}
                       />
                     </div>
 
@@ -357,6 +378,7 @@ export const IntegrationsPage = () => {
                         id="wa_phone" 
                         placeholder="+7 (999) 123-45-67"
                         value={selectedIntegration.config.phone}
+                        onChange={(e) => updateConfig('phone', e.target.value)}
                       />
                     </div>
 
@@ -379,6 +401,7 @@ export const IntegrationsPage = () => {
                         type="password"
                         placeholder="Ключ Google Calendar API"
                         value={selectedIntegration.config.api_key}
+                        onChange={(e) => updateConfig('api_key', e.target.value)}
                       />
                     </div>
 
@@ -388,6 +411,7 @@ export const IntegrationsPage = () => {
                         id="calendar_id" 
                         placeholder="example@group.calendar.google.com"
                         value={selectedIntegration.config.calendar_id}
+                        onChange={(e) => updateConfig('calendar_id', e.target.value)}
                       />
                     </div>
                   </div>
@@ -402,6 +426,7 @@ export const IntegrationsPage = () => {
                         type="password"
                         placeholder="Токен доступа к Яндекс.Директ"
                         value={selectedIntegration.config.token}
+                        onChange={(e) => updateConfig('token', e.target.value)}
                       />
                     </div>
 
