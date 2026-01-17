@@ -25,6 +25,7 @@ interface Integration {
 export const IntegrationsPage = () => {
   const { toast } = useToast();
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [avitoAuthLoading, setAvitoAuthLoading] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 'avito',
@@ -128,6 +129,69 @@ export const IntegrationsPage = () => {
         }
       });
     }
+  };
+
+  const handleAvitoOAuth = () => {
+    setAvitoAuthLoading(true);
+    const clientId = 'VzbKJ5EdJ2AYmep_vm_v';
+    const redirectUri = 'https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe';
+    const scope = 'messenger:read';
+    
+    const authUrl = `https://avito.ru/oauth?response_type=code&client_id=${clientId}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    
+    // Открываем popup окно для авторизации
+    const width = 600;
+    const height = 700;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    
+    const popup = window.open(
+      authUrl,
+      'AvitoAuth',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+    
+    // Слушаем сообщения от popup окна
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'avito-oauth-success') {
+        setAvitoAuthLoading(false);
+        popup?.close();
+        
+        toast({
+          title: "Авторизация успешна!",
+          description: "Avito подключен. Теперь можно загружать диалоги автоматически.",
+        });
+        
+        // Активируем интеграцию
+        setIntegrations(integrations.map(int => 
+          int.id === 'avito' ? { ...int, isActive: true } : int
+        ));
+        
+        window.removeEventListener('message', handleMessage);
+      } else if (event.data.type === 'avito-oauth-error') {
+        setAvitoAuthLoading(false);
+        popup?.close();
+        
+        toast({
+          title: "Ошибка авторизации",
+          description: event.data.error || "Не удалось подключить Avito",
+          variant: "destructive",
+        });
+        
+        window.removeEventListener('message', handleMessage);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    // Проверяем закрытие окна без авторизации
+    const checkClosed = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(checkClosed);
+        setAvitoAuthLoading(false);
+        window.removeEventListener('message', handleMessage);
+      }
+    }, 500);
   };
 
   return (
@@ -242,36 +306,39 @@ export const IntegrationsPage = () => {
                     </TabsList>
 
                     <TabsContent value="credentials" className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="avito_client_id">Client ID</Label>
-                        <Input 
-                          id="avito_client_id" 
-                          placeholder="Введите Client ID из личного кабинета Avito"
-                          value={selectedIntegration.config.client_id}
-                          onChange={(e) => updateConfig('client_id', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="avito_client_secret">Client Secret</Label>
-                        <Input 
-                          id="avito_client_secret" 
-                          type="password"
-                          placeholder="Введите Client Secret"
-                          value={selectedIntegration.config.client_secret}
-                          onChange={(e) => updateConfig('client_secret', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="avito_user_id">User ID</Label>
-                        <Input 
-                          id="avito_user_id" 
-                          placeholder="Ваш ID пользователя Avito"
-                          value={selectedIntegration.config.user_id}
-                          onChange={(e) => updateConfig('user_id', e.target.value)}
-                        />
-                      </div>
+                      <Card className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-blue-500/30">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                              <Icon name="Zap" size={24} className="text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-2">Автоматическое подключение Avito</h4>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Нажмите кнопку ниже, разрешите доступ к вашему аккаунту Avito — и все диалоги начнут загружаться автоматически.
+                              </p>
+                              <Button 
+                                onClick={handleAvitoOAuth}
+                                disabled={avitoAuthLoading}
+                                className="w-full"
+                                size="lg"
+                              >
+                                {avitoAuthLoading ? (
+                                  <>
+                                    <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                                    Ожидание авторизации...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="ShoppingBag" size={18} className="mr-2" />
+                                    Подключить Avito
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </TabsContent>
 
                     <TabsContent value="settings" className="space-y-4 mt-4">

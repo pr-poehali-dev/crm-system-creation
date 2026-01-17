@@ -1,4 +1,5 @@
 {
+  "avito-oauth-callback": "https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe",
   "avito-messages": "https://functions.poehali.dev/3bb741cd-372e-476f-a500-1db53ca2236d",
   "vehicles": "https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f"
 }
