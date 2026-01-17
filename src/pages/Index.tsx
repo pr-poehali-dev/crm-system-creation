@@ -721,9 +721,35 @@ const Index = () => {
                     Автопарк
                   </CardTitle>
                   <div className="flex gap-2">
-                    <Button variant="outline">
-                      <Icon name="Filter" size={18} className="mr-2" />
-                      Фильтр
+                    <Button 
+                      variant="outline"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                      onClick={async () => {
+                        if (confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ автомобили из базы. Продолжить?')) {
+                          try {
+                            const response = await fetch('https://functions.poehali.dev/c1620ea4-c9a8-4c0e-bb5b-5820d4042dfa?action=clear', {
+                              method: 'DELETE'
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                              toast({
+                                title: "Автопарк очищен",
+                                description: data.message
+                              });
+                              setFleet([]);
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Ошибка",
+                              description: "Не удалось очистить автопарк",
+                              variant: "destructive"
+                            });
+                          }
+                        }
+                      }}
+                    >
+                      <Icon name="Trash2" size={18} className="mr-2" />
+                      Очистить все
                     </Button>
                     <Button className="bg-gradient-to-r from-primary to-secondary" onClick={() => setIsAddVehicleOpen(true)}>
                       <Icon name="Plus" size={18} className="mr-2" />

@@ -48,6 +48,16 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
   });
 
   const handleSave = async () => {
+    // Проверка обязательных полей
+    if (!vehicle.model || !vehicle.license_plate) {
+      toast({
+        title: "Заполните обязательные поля",
+        description: "Марка/модель и гос. номер обязательны для заполнения",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
         method: 'POST',
@@ -64,15 +74,44 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
       const result = await response.json();
       
       toast({
-        title: "Автомобиль добавлен",
+        title: "✅ Автомобиль добавлен!",
         description: `${vehicle.model} (${vehicle.license_plate}) успешно добавлен в автопарк`,
       });
+      
+      // Сбрасываем форму
+      setVehicle({
+        model: '',
+        license_plate: '',
+        vin: '',
+        year: new Date().getFullYear(),
+        color: '',
+        seats: 5,
+        category: 'Бизнес',
+        branch_id: 1,
+        status: 'Свободен',
+        current_location: 'Офис на Ленина 45',
+        insurance_expires: '',
+        tech_inspection_expires: '',
+        osago_number: '',
+        kasko_number: '',
+        last_service_date: '',
+        next_service_date: '',
+        last_service_km: 0,
+        next_service_km: 0,
+        current_km: 0,
+        purchase_price: 0,
+        rental_price_per_day: 5000,
+        rental_price_per_km: 15,
+        notes: '',
+      });
+      
       onOpenChange(false);
+      window.location.reload(); // Обновляем страницу чтобы показать новый автомобиль
     } catch (error) {
       console.error('Error creating vehicle:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось добавить автомобиль",
+        description: "Не удалось добавить автомобиль. Проверьте заполнение полей.",
         variant: "destructive",
       });
     }
@@ -87,8 +126,19 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
             Добавление автомобиля в автопарк
           </DialogTitle>
           <DialogDescription>
-            Заполните все обязательные поля для добавления нового автомобиля
+            Заполните обязательные поля (*). Остальные можно заполнить позже
           </DialogDescription>
+          <div className="mt-4 p-4 bg-info/10 rounded-lg border border-info/30">
+            <div className="flex items-start gap-3">
+              <Icon name="Lightbulb" size={20} className="text-info mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground mb-1">Пример заполнения:</p>
+                <p className="text-muted-foreground">
+                  <strong>Модель:</strong> Toyota Camry XV70 • <strong>Номер:</strong> А123БВ777 • <strong>Год:</strong> 2022 • <strong>Мест:</strong> 5
+                </p>
+              </div>
+            </div>
+          </div>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
@@ -102,22 +152,24 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
           <TabsContent value="basic" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="model">Марка и модель *</Label>
+                <Label htmlFor="model">Марка и модель * <span className="text-muted-foreground font-normal text-xs">(напр: Toyota Camry XV70)</span></Label>
                 <Input
                   id="model"
-                  placeholder="Hyundai Grand Starex"
+                  placeholder="Введите марку и модель"
                   value={vehicle.model}
                   onChange={(e) => setVehicle({...vehicle, model: e.target.value})}
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="license_plate">Гос. номер *</Label>
+                <Label htmlFor="license_plate">Гос. номер * <span className="text-muted-foreground font-normal text-xs">(напр: А123БВ777)</span></Label>
                 <Input
                   id="license_plate"
-                  placeholder="А123ВС777"
+                  placeholder="А000АА777"
                   value={vehicle.license_plate}
                   onChange={(e) => setVehicle({...vehicle, license_plate: e.target.value.toUpperCase()})}
+                  required
                 />
               </div>
             </div>
