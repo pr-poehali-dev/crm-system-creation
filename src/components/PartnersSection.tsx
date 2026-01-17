@@ -254,7 +254,7 @@ export const PartnersSection = () => {
               </Card>
             ))}
           </div>
-          )}
+        )}
         </CardContent>
       </Card>
 

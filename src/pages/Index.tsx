@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useCRMStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ServicesSection from '@/components/ServicesSection';
 import FinanceSection from '@/components/FinanceSection';
@@ -135,7 +136,8 @@ const Index = () => {
     return total;
   };
 
-  const [fleet, setFleet] = useState<any[]>([]);
+  const fleet = useCRMStore((state) => state.vehicles);
+  const setFleet = useCRMStore((state) => state.setVehicles);
   const [isLoadingFleet, setIsLoadingFleet] = useState(true);
 
   const loadBookings = async () => {

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useCRMStore } from '@/lib/store';
 import Icon from '@/components/ui/icon';
 
 interface AddVehicleDialogProps {
@@ -16,6 +17,7 @@ interface AddVehicleDialogProps {
 
 export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) => {
   const { toast } = useToast();
+  const addVehicle = useCRMStore((state) => state.addVehicle);
   
   const getInitialVehicle = () => ({
     model: 'HYUNDAI GRAND STAREX',
@@ -46,7 +48,7 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
     rental_price_per_km: 15,
     sublease_cost: 0,
     
-    notes: 'Шасси (рама): ОТСУТСТВУЕТ\nКузов: KMJWA37JBBU270500\nМощность двигателя: 108.8 кВт / 147 л.с.\nСвидетельство о регистрации ТС: 9970262810\n\nСобственник: Малиночка Никита Дмитриевич\nПаспорт: 0319 547170\nВыдан: 22.05.2020 ГУ МВД России по Краснодарскому краю\nРегистрация: г. Хадыженск, ул. Колхозная, д. 48',
+    notes: 'VIN: KMJWA37JBBU270500\nКатегория ТС: В/М1\nГод выпуска: 2011\nШасси (рама): ОТСУТСТВУЕТ\nКузов (кабина, прицеп): KMJWA37JBBU270500\nЦвет: Черный\nМощность двигателя: 108.8 кВт / 147 л.с.\nСвидетельство о регистрации ТС: 9970262810\n\nСобственник: Малиночка Никита Дмитриевич\nПаспорт: 0319 547170\nВыдан: 22.05.2020 ГУ МВД России по Краснодарскому краю\nЗарегистрирован: г. Хадыженск, ул. Колхозная, д. 48',
   });
   
   const [vehicle, setVehicle] = useState(getInitialVehicle());
@@ -101,41 +103,16 @@ export const AddVehicleDialog = ({ open, onOpenChange }: AddVehicleDialogProps) 
 
       const result = await response.json();
       
+      addVehicle(result);
+      
       toast({
         title: "✅ Автомобиль добавлен!",
         description: `${vehicle.model} (${vehicle.license_plate}) успешно добавлен в автопарк`,
       });
       
-      // Сбрасываем форму
-      setVehicle({
-        model: '',
-        license_plate: '',
-        vin: '',
-        year: new Date().getFullYear(),
-        color: '',
-        seats: 5,
-        category: 'Бизнес',
-        branch_id: 1,
-        status: 'Свободен',
-        current_location: 'Офис на Ленина 45',
-        insurance_expires: '',
-        tech_inspection_expires: '',
-        osago_number: '',
-        kasko_number: '',
-        last_service_date: '',
-        next_service_date: '',
-        last_service_km: 0,
-        next_service_km: 0,
-        current_km: 0,
-        purchase_price: 0,
-        rental_price_per_day: 5000,
-        rental_price_per_km: 15,
-        sublease_cost: 0,
-        notes: '',
-      });
-      
-      onOpenChange(false);
-      window.location.reload(); // Обновляем страницу чтобы показать новый автомобиль
+      setVehicle(getInitialVehicle());
+      setCustomFields([]);
+      onOpenChange(false)
     } catch (error) {
       console.error('Error creating vehicle:', error);
       toast({

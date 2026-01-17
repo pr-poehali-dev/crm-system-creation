@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useCRMStore } from '@/lib/store';
 import Icon from '@/components/ui/icon';
 
 interface VehicleHandoverDialogProps {
@@ -24,6 +25,7 @@ export const VehicleHandoverDialog = ({
   booking
 }: VehicleHandoverDialogProps) => {
   const { toast } = useToast();
+  const updateVehicle = useCRMStore((state) => state.updateVehicle);
   const [mode, setMode] = useState<'pickup' | 'return'>('pickup');
   const [handoverData, setHandoverData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -107,6 +109,13 @@ export const VehicleHandoverDialog = ({
 
       if (!response.ok) {
         throw new Error('Failed to save handover');
+      }
+
+      if (vehicle?.id) {
+        updateVehicle(vehicle.id, {
+          status: mode === 'pickup' ? 'В аренде' : 'Свободен',
+          current_km: handoverData.odometer
+        });
       }
 
       toast({
