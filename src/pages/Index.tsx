@@ -658,20 +658,29 @@ const Index = () => {
           {activeSection === 'dashboard' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <Card className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                <Card 
+                  className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  onClick={() => setActiveSection('leads')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Edit" size={20} className="text-purple-500" />
                         <CardTitle className="text-lg">Вишлист</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-purple-500" />
+                      <Icon name="ChevronRight" size={20} className="text-purple-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-muted-foreground mb-4">На сумму 9 000 руб (1)</div>
                     <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-purple-500/50 transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSection('leads');
+                        }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-purple-600 text-white">7 000</Badge>
                           <span className="text-xs text-muted-foreground">300 км</span>
@@ -685,20 +694,26 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                <Card 
+                  className="bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  onClick={() => setActiveSection('requests')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Users" size={20} className="text-orange-500" />
                         <CardTitle className="text-lg">Заявки</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-orange-500" />
+                      <Icon name="ChevronRight" size={20} className="text-orange-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-muted-foreground mb-4">На сумму 152 000 руб (3)</div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-red-600 text-white">40 000</Badge>
                           <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
@@ -709,7 +724,10 @@ const Index = () => {
                           <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
                         </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-red-600 text-white">34 000</Badge>
                           <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
@@ -720,7 +738,10 @@ const Index = () => {
                           <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
                         </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-orange-600 text-white">108 000</Badge>
                           <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
@@ -735,14 +756,17 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                <Card 
+                  className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  onClick={() => setActiveSection('calendar')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Clock" size={20} className="text-blue-500" />
                         <CardTitle className="text-lg">Брони</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-blue-500" />
+                      <Icon name="ChevronRight" size={20} className="text-blue-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -787,20 +811,26 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 animate-scale-in">
+                <Card 
+                  className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
+                  onClick={() => setActiveSection('fleet')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Car" size={20} className="text-green-500" />
                         <CardTitle className="text-lg">В аренде</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-green-500" />
+                      <Icon name="ChevronRight" size={20} className="text-green-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-muted-foreground mb-4">На сумму -60 500 руб (6)</div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-green-500/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActiveSection('fleet'); }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-green-600 text-white">88 000</Badge>
                           <Badge variant="secondary" className="text-xs">А218ЕТ550</Badge>
@@ -811,7 +841,10 @@ const Index = () => {
                           <div className="text-xs text-muted-foreground">18.01.2026 20:00 — Офис</div>
                         </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-background/80 border border-border/50 relative">
+                      <div 
+                        className="p-3 rounded-lg bg-background/80 border border-border/50 relative cursor-pointer hover:border-green-500/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActiveSection('fleet'); }}
+                      >
                         <Badge className="absolute top-2 right-2 bg-red-600 text-white text-xs">Просрочка!</Badge>
                         <div className="flex items-center justify-between mb-2">
                           <Badge className="bg-green-600 text-white">48 000</Badge>
@@ -829,14 +862,17 @@ const Index = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                <Card className="bg-cyan-500/10 border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 hover:scale-105">
+                <Card 
+                  className="bg-cyan-500/10 border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 hover:scale-105 cursor-pointer"
+                  onClick={() => setActiveSection('requests')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="CheckCircle" size={20} className="text-cyan-500" />
                         <CardTitle className="text-lg">Аренда окончена</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-cyan-500" />
+                      <Icon name="ChevronRight" size={20} className="text-cyan-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -868,14 +904,17 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105">
+                <Card 
+                  className="bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 cursor-pointer"
+                  onClick={() => setActiveSection('calendar')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="Clock" size={20} className="text-blue-500" />
                         <CardTitle className="text-lg">Сводные данные</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-blue-500" />
+                      <Icon name="ChevronRight" size={20} className="text-blue-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -931,14 +970,17 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105">
+                <Card 
+                  className="bg-green-500/10 border-green-500/30 hover:border-green-500/50 transition-all duration-300 hover:scale-105 cursor-pointer"
+                  onClick={() => setActiveSection('finance')}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon name="TrendingUp" size={20} className="text-green-500" />
                         <CardTitle className="text-lg">Доставки</CardTitle>
                       </div>
-                      <Icon name="ChevronLeft" size={20} className="text-green-500" />
+                      <Icon name="ChevronRight" size={20} className="text-green-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
