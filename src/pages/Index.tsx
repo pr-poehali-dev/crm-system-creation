@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ServicesSection from '@/components/ServicesSection';
@@ -73,12 +73,29 @@ const Index = () => {
     return service.price;
   };
 
-  const fleet = [
-    { id: 1, model: 'Mercedes S-Class', number: 'А001АА777', status: 'Свободен', location: 'Гараж №1', nextService: '23.02.2026' },
-    { id: 2, model: 'BMW X5', number: 'В123ВВ777', status: 'В аренде', location: 'Клиент: Петров', nextService: '15.02.2026' },
-    { id: 3, model: 'Audi A8', number: 'С456СС777', status: 'Обслуживание', location: 'СТО "АвтоЭксперт"', nextService: '20.01.2026' },
-    { id: 4, model: 'Tesla Model S', number: 'Е789ЕЕ777', status: 'Забронирован', location: 'Гараж №2', nextService: '10.03.2026' },
-  ];
+  const [fleet, setFleet] = useState<any[]>([]);
+  const [isLoadingFleet, setIsLoadingFleet] = useState(true);
+
+  useEffect(() => {
+    const loadFleet = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f');
+        const data = await response.json();
+        setFleet(data.vehicles || []);
+      } catch (error) {
+        console.error('Error loading fleet:', error);
+        toast({
+          title: "Ошибка загрузки",
+          description: "Не удалось загрузить автопарк",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingFleet(false);
+      }
+    };
+
+    loadFleet();
+  }, []);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -658,12 +675,20 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {fleet.map((car) => (
+                  {isLoadingFleet ? (
+                    <div className="col-span-2 text-center py-8 text-muted-foreground">
+                      Загрузка автопарка...
+                    </div>
+                  ) : fleet.length === 0 ? (
+                    <div className="col-span-2 text-center py-8 text-muted-foreground">
+                      Нет автомобилей в автопарке
+                    </div>
+                  ) : fleet.map((car) => (
                     <div key={car.id} className="p-5 rounded-lg bg-gradient-to-br from-sidebar/40 to-sidebar/20 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group hover:scale-[1.02]">
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-bold">{car.model}</h3>
-                          <p className="text-sm text-muted-foreground">{car.number}</p>
+                          <p className="text-sm text-muted-foreground">{car.license_plate}</p>
                         </div>
                         <Badge className={cn('border', getStatusColor(car.status))}>
                           {car.status}
@@ -672,11 +697,11 @@ const Index = () => {
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Icon name="MapPin" size={16} />
-                          <span>{car.location}</span>
+                          <span>{car.current_location || 'Не указано'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Icon name="Wrench" size={16} />
-                          <span>ТО: {car.nextService}</span>
+                          <span>ТО: {car.next_service_date || 'Не указано'}</span>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4">
@@ -725,14 +750,6 @@ const Index = () => {
           {activeSection === 'integrations' && <IntegrationsPage />}
         </div>
       </main>
-
-      <AddVehicleDialog open={isAddVehicleOpen} onOpenChange={setIsAddVehicleOpen} />
-      
-      <VehicleChecklistDialog 
-        open={isChecklistOpen} 
-        onOpenChange={setIsChecklistOpen}
-        checklistType={checklistType}
-      />
 
       <Dialog open={selectedRequest !== null} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -928,6 +945,31 @@ const Index = () => {
           })()}
         </DialogContent>
       </Dialog>
+
+      <AddVehicleDialog 
+        open={isAddVehicleOpen} 
+        onOpenChange={(open) => {
+          setIsAddVehicleOpen(open);
+          if (!open) {
+            const loadFleet = async () => {
+              try {
+                const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f');
+                const data = await response.json();
+                setFleet(data.vehicles || []);
+              } catch (error) {
+                console.error('Error reloading fleet:', error);
+              }
+            };
+            loadFleet();
+          }
+        }} 
+      />
+      
+      <VehicleChecklistDialog 
+        open={isChecklistOpen} 
+        onOpenChange={setIsChecklistOpen}
+        checklistType={checklistType}
+      />
     </div>
   );
 };
