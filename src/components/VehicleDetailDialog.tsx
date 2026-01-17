@@ -4,6 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +27,10 @@ export const VehicleDetailDialog = ({
   onShowMaintenance,
   onShowInsurance
 }: VehicleDetailDialogProps) => {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedVehicle, setEditedVehicle] = useState(vehicle);
+
   if (!vehicle) return null;
 
   const bookings = [
@@ -62,14 +71,51 @@ export const VehicleDetailDialog = ({
               <span>Авто {vehicle.license_plate}</span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onShowInsurance}>
-                <Icon name="Shield" size={16} className="mr-2" />
-                Страховка
-              </Button>
-              <Button variant="outline" size="sm" onClick={onShowMaintenance}>
-                <Icon name="Wrench" size={16} className="mr-2" />
-                Статус ТО
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setIsEditing(false);
+                    setEditedVehicle(vehicle);
+                  }}>
+                    <Icon name="X" size={16} className="mr-2" />
+                    Отмена
+                  </Button>
+                  <Button size="sm" className="bg-gradient-to-r from-primary to-secondary" onClick={async () => {
+                    try {
+                      const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(editedVehicle)
+                      });
+                      if (response.ok) {
+                        toast({ title: "Сохранено", description: "Данные автомобиля обновлены" });
+                        setIsEditing(false);
+                        window.location.reload();
+                      }
+                    } catch (error) {
+                      toast({ title: "Ошибка", description: "Не удалось сохранить изменения", variant: "destructive" });
+                    }
+                  }}>
+                    <Icon name="Save" size={16} className="mr-2" />
+                    Сохранить
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                    <Icon name="Edit" size={16} className="mr-2" />
+                    Редактировать
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onShowInsurance}>
+                    <Icon name="Shield" size={16} className="mr-2" />
+                    Страховка
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onShowMaintenance}>
+                    <Icon name="Wrench" size={16} className="mr-2" />
+                    Статус ТО
+                  </Button>
+                </>
+              )}
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -81,72 +127,185 @@ export const VehicleDetailDialog = ({
           </TabsList>
 
           <TabsContent value="info" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Badge className={getStatusColor('Зелёный')}>Зелёный</Badge>
-                  <span className="text-muted-foreground text-sm font-normal">
-                    {vehicle.model || 'Hyundai Grand Starex #304'}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Текущий пробег</div>
-                    <div className="text-xl font-bold">{vehicle.current_km?.toLocaleString() || '354 826'} км</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">До следующего ТО</div>
-                    <div className="text-xl font-bold text-warning">
-                      {vehicle.next_service_km 
-                        ? `${(vehicle.next_service_km - (vehicle.current_km || 0)).toLocaleString()} км`
-                        : '7 355 км'
-                      }
+            {isEditing ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Редактирование данных автомобиля</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Марка и модель</Label>
+                      <Input value={editedVehicle.model} onChange={(e) => setEditedVehicle({...editedVehicle, model: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Гос. номер</Label>
+                      <Input value={editedVehicle.license_plate} onChange={(e) => setEditedVehicle({...editedVehicle, license_plate: e.target.value.toUpperCase()})} />
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Последнее ТО</div>
-                    <div className="font-medium">
-                      {vehicle.last_service_date || '10.01.2026'} — {vehicle.last_service_km?.toLocaleString() || '353 426'} км
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>VIN</Label>
+                      <Input value={editedVehicle.vin} onChange={(e) => setEditedVehicle({...editedVehicle, vin: e.target.value.toUpperCase()})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Год</Label>
+                      <Input type="number" value={editedVehicle.year} onChange={(e) => setEditedVehicle({...editedVehicle, year: parseInt(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Цвет</Label>
+                      <Input value={editedVehicle.color} onChange={(e) => setEditedVehicle({...editedVehicle, color: e.target.value})} />
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Цвет антифриза</div>
-                    <Badge className="bg-green-500 text-white">Зелёный</Badge>
-                  </div>
-                </div>
 
-                <div className="pt-4 border-t">
-                  <div className="text-sm text-muted-foreground mb-2">Детали</div>
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">VIN: </span>
-                      <span className="font-medium">{vehicle.vin || '—'}</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Статус</Label>
+                      <Select value={editedVehicle.status} onValueChange={(val) => setEditedVehicle({...editedVehicle, status: val})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Свободен">Свободен</SelectItem>
+                          <SelectItem value="В аренде">В аренде</SelectItem>
+                          <SelectItem value="Обслуживание">Обслуживание</SelectItem>
+                          <SelectItem value="Неисправен">Неисправен</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Год: </span>
-                      <span className="font-medium">{vehicle.year || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Цвет: </span>
-                      <span className="font-medium">{vehicle.color || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">ОСАГО: </span>
-                      <span className="font-medium">{vehicle.insurance_expires || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Техосмотр: </span>
-                      <span className="font-medium">{vehicle.tech_inspection_expires || '—'}</span>
+                    <div className="space-y-2">
+                      <Label>Местоположение</Label>
+                      <Input value={editedVehicle.current_location} onChange={(e) => setEditedVehicle({...editedVehicle, current_location: e.target.value})} />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Текущий пробег (км)</Label>
+                      <Input type="number" value={editedVehicle.current_km} onChange={(e) => setEditedVehicle({...editedVehicle, current_km: parseInt(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Последнее ТО (дата)</Label>
+                      <Input type="date" value={editedVehicle.last_service_date} onChange={(e) => setEditedVehicle({...editedVehicle, last_service_date: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Последнее ТО (км)</Label>
+                      <Input type="number" value={editedVehicle.last_service_km} onChange={(e) => setEditedVehicle({...editedVehicle, last_service_km: parseInt(e.target.value)})} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Следующее ТО (дата)</Label>
+                      <Input type="date" value={editedVehicle.next_service_date} onChange={(e) => setEditedVehicle({...editedVehicle, next_service_date: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Следующее ТО (км)</Label>
+                      <Input type="number" value={editedVehicle.next_service_km} onChange={(e) => setEditedVehicle({...editedVehicle, next_service_km: parseInt(e.target.value)})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Мест</Label>
+                      <Input type="number" value={editedVehicle.seats} onChange={(e) => setEditedVehicle({...editedVehicle, seats: parseInt(e.target.value)})} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>ОСАГО (срок)</Label>
+                      <Input type="date" value={editedVehicle.insurance_expires} onChange={(e) => setEditedVehicle({...editedVehicle, insurance_expires: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Номер ОСАГО</Label>
+                      <Input value={editedVehicle.osago_number} onChange={(e) => setEditedVehicle({...editedVehicle, osago_number: e.target.value.toUpperCase()})} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Техосмотр (срок)</Label>
+                      <Input type="date" value={editedVehicle.tech_inspection_expires} onChange={(e) => setEditedVehicle({...editedVehicle, tech_inspection_expires: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Номер КАСКО</Label>
+                      <Input value={editedVehicle.kasko_number} onChange={(e) => setEditedVehicle({...editedVehicle, kasko_number: e.target.value.toUpperCase()})} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Примечания</Label>
+                    <Textarea value={editedVehicle.notes} onChange={(e) => setEditedVehicle({...editedVehicle, notes: e.target.value})} rows={3} />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Badge className={getStatusColor('Зелёный')}>Зелёный</Badge>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      {vehicle.model || 'Hyundai Grand Starex #304'}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Текущий пробег</div>
+                      <div className="text-xl font-bold">{vehicle.current_km?.toLocaleString() || '354 826'} км</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">До следующего ТО</div>
+                      <div className="text-xl font-bold text-warning">
+                        {vehicle.next_service_km 
+                          ? `${(vehicle.next_service_km - (vehicle.current_km || 0)).toLocaleString()} км`
+                          : '7 355 км'
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Последнее ТО</div>
+                      <div className="font-medium">
+                        {vehicle.last_service_date || '10.01.2026'} — {vehicle.last_service_km?.toLocaleString() || '353 426'} км
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Цвет антифриза</div>
+                      <Badge className="bg-green-500 text-white">Зелёный</Badge>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <div className="text-sm text-muted-foreground mb-2">Детали</div>
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">VIN: </span>
+                        <span className="font-medium">{vehicle.vin || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Год: </span>
+                        <span className="font-medium">{vehicle.year || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Цвет: </span>
+                        <span className="font-medium">{vehicle.color || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">ОСАГО: </span>
+                        <span className="font-medium">{vehicle.insurance_expires || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Техосмотр: </span>
+                        <span className="font-medium">{vehicle.tech_inspection_expires || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-3">
