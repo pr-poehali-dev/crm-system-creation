@@ -67,12 +67,7 @@ const Index = () => {
     { id: 'driver', name: 'Водитель с авто', price: 3000, unit: 'час' },
   ];
 
-  const requests = [
-    { id: 1, client: 'Алексей Петров', phone: '+7 (999) 123-45-67', service: 'Выездная мойка', car: 'BMW X5', status: 'В работе', price: '₽5,500', time: '14:30', created: '17.01.2026', address: 'ул. Ленина, 25', notes: 'Полировка кузова', history: [{date: '17.01.2026 14:00', action: 'Заявка создана', user: 'Система'}, {date: '17.01.2026 14:30', action: 'Взята в работу', user: 'Иванов И.'}] },
-    { id: 2, client: 'Мария Иванова', phone: '+7 (999) 234-56-78', service: 'Аренда авто', car: 'Mercedes S-Class', status: 'Новая', price: '₽18,000', time: '15:00', created: '17.01.2026', address: '', notes: '3 дня, 150км', history: [{date: '17.01.2026 15:00', action: 'Заявка создана', user: 'Система'}] },
-    { id: 3, client: 'ООО "ТехноСтрой"', phone: '+7 (999) 345-67-89', service: 'Абонемент консьерж', car: '—', status: 'Ожидает оплаты', price: '₽45,000', time: '15:30', created: '17.01.2026', address: '', notes: 'Корпоративный пакет', history: [{date: '17.01.2026 15:30', action: 'Заявка создана', user: 'Петрова А.'}, {date: '17.01.2026 16:00', action: 'Выставлен счёт', user: 'Система'}] },
-    { id: 4, client: 'Дмитрий Соколов', phone: '+7 (999) 456-78-90', service: 'Детейлинг', car: 'Audi A8', status: 'Завершена', price: '₽12,000', time: '13:00', created: '17.01.2026', address: 'СТО №3', notes: 'Химчистка + полировка', history: [{date: '17.01.2026 10:00', action: 'Заявка создана', user: 'Система'}, {date: '17.01.2026 10:30', action: 'Взята в работу', user: 'Сидоров П.'}, {date: '17.01.2026 13:00', action: 'Завершена', user: 'Сидоров П.'}] },
-  ];
+  const [requests, setRequests] = useState<any[]>([]);
 
   const calculatePrice = () => {
     const service = services.find(s => s.id === newRequest.service);
@@ -633,13 +628,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {[
-                    { id: 1, name: 'Алексей Петров', phone: '+7 (999) 123-45-67', email: 'petrov@mail.ru', balance: 0, orders: 3 },
-                    { id: 2, name: 'Мария Иванова', phone: '+7 (999) 234-56-78', email: 'ivanova@mail.ru', balance: -2250, orders: 1 },
-                    { id: 3, name: 'ООО "ТехноСтрой"', phone: '+7 (999) 345-67-89', email: 'info@tehnostroy.ru', balance: 45000, orders: 5 },
-                    { id: 4, name: 'Дмитрий Соколов', phone: '+7 (999) 456-78-90', email: 'sokolov@mail.ru', balance: 0, orders: 2 },
-                    { id: 5, name: 'Анна Сидорова', phone: '+7 (999) 567-89-01', email: 'sidorova@mail.ru', balance: 5000, orders: 4 },
-                  ].map((client) => (
+                  {[].map((client: any) => (
                     <div key={client.id} className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">

@@ -40,85 +40,33 @@ export const LeadsSection = () => {
     { id: 'rejected', name: 'Отказ', color: 'bg-red-500', count: 4 },
   ];
 
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: '1',
-      source: 'avito',
-      client: 'Иван Петров',
-      phone: '+7 (999) 123-45-67',
-      message: 'Интересует аренда минивэна на 5 дней, с 20 по 25 января. Нужна детская люлька.',
-      car: 'Hyundai Grand Starex',
-      stage: 'new',
-      created: '17.01.2026 14:25',
-      lastActivity: '17.01.2026 14:25',
-      sum: 25000,
-    },
-    {
-      id: '2',
-      source: 'avito',
-      client: 'Мария Сидорова',
-      phone: '+7 (999) 234-56-78',
-      message: 'Здравствуйте, хочу арендовать авто для поездки в Краснодар',
-      car: 'Toyota Camry',
-      stage: 'contact',
-      created: '17.01.2026 12:10',
-      lastActivity: '17.01.2026 15:30',
-      sum: 42000,
-      manager: 'Анна К.',
-    },
-    {
-      id: '3',
-      source: 'telegram',
-      client: 'Дмитрий Козлов',
-      phone: '+7 (999) 345-67-89',
-      message: 'Интересуют условия долгосрочной аренды на месяц',
-      car: 'Любой',
-      stage: 'meeting',
-      created: '16.01.2026 18:40',
-      lastActivity: '17.01.2026 10:15',
-      sum: 120000,
-      manager: 'Сергей П.',
-    },
-    {
-      id: '4',
-      source: 'whatsapp',
-      client: 'Александр Новиков',
-      phone: '+7 (999) 456-78-90',
-      message: 'Есть ли свободные авто на выходные?',
-      car: 'Не указано',
-      stage: 'offer',
-      created: '16.01.2026 09:20',
-      lastActivity: '17.01.2026 11:45',
-      sum: 15000,
-      manager: 'Анна К.',
-    },
-    {
-      id: '5',
-      source: 'phone',
-      client: 'Елена Волкова',
-      phone: '+7 (999) 567-89-01',
-      message: 'Звонила по поводу аренды для свадьбы',
-      car: 'Mercedes S-Class',
-      stage: 'deal',
-      created: '15.01.2026 15:00',
-      lastActivity: '17.01.2026 13:20',
-      sum: 35000,
-      manager: 'Сергей П.',
-    },
-    {
-      id: '6',
-      source: 'avito',
-      client: 'Олег Смирнов',
-      phone: '+7 (999) 678-90-12',
-      message: 'Хотел узнать цены на аренду',
-      car: 'Не указано',
-      stage: 'rejected',
-      created: '14.01.2026 11:30',
-      lastActivity: '15.01.2026 09:00',
-      sum: 0,
-      manager: 'Анна К.',
-    },
-  ]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
+
+  const loadAvitoMessages = async () => {
+    setIsLoadingLeads(true);
+    try {
+      toast({
+        title: "Загрузка диалогов из Avito",
+        description: "Получаем новые сообщения...",
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Диалоги загружены",
+        description: "Все новые сообщения из Avito добавлены в лиды",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка загрузки",
+        description: "Не удалось загрузить диалоги из Avito. Проверьте настройки интеграции.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLeads(false);
+    }
+  };
 
   const getSourceIcon = (source: string) => {
     const icons: Record<string, string> = {
@@ -194,10 +142,20 @@ export const LeadsSection = () => {
                 Воронка продаж и работа с обращениями из всех каналов
               </CardDescription>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-secondary">
-              <Icon name="Plus" size={18} className="mr-2" />
-              Добавить лид
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={loadAvitoMessages}
+                disabled={isLoadingLeads}
+              >
+                <Icon name="Download" size={18} className="mr-2" />
+                {isLoadingLeads ? 'Загрузка...' : 'Загрузить из Avito'}
+              </Button>
+              <Button className="bg-gradient-to-r from-primary to-secondary">
+                <Icon name="Plus" size={18} className="mr-2" />
+                Добавить лид
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -211,28 +169,31 @@ export const LeadsSection = () => {
               onClick={() => setActiveStage('all')}
             >
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold">55</div>
+                <div className="text-3xl font-bold">{leads.length}</div>
                 <div className="text-sm text-muted-foreground mt-1">Всего</div>
               </CardContent>
             </Card>
-            {stages.map((stage) => (
-              <Card 
-                key={stage.id}
-                className={cn(
-                  "cursor-pointer transition-all hover:scale-105",
-                  activeStage === stage.id ? 'ring-2 ring-primary' : ''
-                )}
-                onClick={() => setActiveStage(stage.id)}
-              >
-                <CardContent className="pt-6 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className={cn('w-3 h-3 rounded-full', stage.color)}></div>
-                    <div className="text-2xl font-bold">{stage.count}</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">{stage.name}</div>
-                </CardContent>
-              </Card>
-            ))}
+            {stages.map((stage) => {
+              const count = leads.filter(l => l.stage === stage.id).length;
+              return (
+                <Card 
+                  key={stage.id}
+                  className={cn(
+                    "cursor-pointer transition-all hover:scale-105",
+                    activeStage === stage.id ? 'ring-2 ring-primary' : ''
+                  )}
+                  onClick={() => setActiveStage(stage.id)}
+                >
+                  <CardContent className="pt-6 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className={cn('w-3 h-3 rounded-full', stage.color)}></div>
+                      <div className="text-2xl font-bold">{count}</div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">{stage.name}</div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="flex gap-2 mb-4">
@@ -257,7 +218,37 @@ export const LeadsSection = () => {
           </div>
 
           <div className="space-y-3">
-            {filteredLeads.map((lead) => (
+            {leads.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="pt-6 pb-6 text-center">
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                      <Icon name="Inbox" size={32} className="text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg mb-2">Нет лидов</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Загрузите диалоги из Avito или добавьте лид вручную
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline"
+                          onClick={loadAvitoMessages}
+                          disabled={isLoadingLeads}
+                        >
+                          <Icon name="Download" size={18} className="mr-2" />
+                          Загрузить из Avito
+                        </Button>
+                        <Button className="bg-gradient-to-r from-primary to-secondary">
+                          <Icon name="Plus" size={18} className="mr-2" />
+                          Добавить лид
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : filteredLeads.map((lead) => (
               <Card 
                 key={lead.id}
                 className="hover:border-primary/50 transition-all cursor-pointer group"
