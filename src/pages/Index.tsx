@@ -1,13 +1,35 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<number | null>(null);
+  const [newRequest, setNewRequest] = useState({
+    client: '',
+    phone: '',
+    service: '',
+    car: '',
+    startDate: new Date(),
+    endDate: new Date(),
+    notes: '',
+    days: 1,
+    km: 0,
+  });
 
   const stats = [
     { label: 'Выручка за месяц', value: '₽1.2M', change: '+12%', trend: 'up', icon: 'TrendingUp' },
@@ -16,12 +38,30 @@ const Index = () => {
     { label: 'Новых клиентов', value: '23', change: '-3', trend: 'down', icon: 'Users' },
   ];
 
-  const requests = [
-    { id: 1, client: 'Алексей Петров', service: 'Выездная мойка', car: 'BMW X5', status: 'В работе', price: '₽5,500', time: '14:30' },
-    { id: 2, client: 'Мария Иванова', service: 'Аренда авто', car: 'Mercedes S-Class', status: 'Новая', price: '₽18,000', time: '15:00' },
-    { id: 3, client: 'ООО "ТехноСтрой"', service: 'Абонемент консьерж', car: '—', status: 'Ожидает оплаты', price: '₽45,000', time: '15:30' },
-    { id: 4, client: 'Дмитрий Соколов', service: 'Детейлинг', car: 'Audi A8', status: 'Завершена', price: '₽12,000', time: '13:00' },
+  const services = [
+    { id: 'wash', name: 'Выездная мойка', price: 2500, unit: 'услуга' },
+    { id: 'rent', name: 'Аренда авто', price: 5000, unit: 'сутки', kmPrice: 15 },
+    { id: 'detailing', name: 'Детейлинг', price: 12000, unit: 'услуга' },
+    { id: 'concierge', name: 'Абонемент консьерж', price: 45000, unit: 'месяц' },
+    { id: 'driver', name: 'Водитель с авто', price: 3000, unit: 'час' },
   ];
+
+  const requests = [
+    { id: 1, client: 'Алексей Петров', phone: '+7 (999) 123-45-67', service: 'Выездная мойка', car: 'BMW X5', status: 'В работе', price: '₽5,500', time: '14:30', created: '17.01.2026', address: 'ул. Ленина, 25', notes: 'Полировка кузова', history: [{date: '17.01.2026 14:00', action: 'Заявка создана', user: 'Система'}, {date: '17.01.2026 14:30', action: 'Взята в работу', user: 'Иванов И.'}] },
+    { id: 2, client: 'Мария Иванова', phone: '+7 (999) 234-56-78', service: 'Аренда авто', car: 'Mercedes S-Class', status: 'Новая', price: '₽18,000', time: '15:00', created: '17.01.2026', address: '', notes: '3 дня, 150км', history: [{date: '17.01.2026 15:00', action: 'Заявка создана', user: 'Система'}] },
+    { id: 3, client: 'ООО "ТехноСтрой"', phone: '+7 (999) 345-67-89', service: 'Абонемент консьерж', car: '—', status: 'Ожидает оплаты', price: '₽45,000', time: '15:30', created: '17.01.2026', address: '', notes: 'Корпоративный пакет', history: [{date: '17.01.2026 15:30', action: 'Заявка создана', user: 'Петрова А.'}, {date: '17.01.2026 16:00', action: 'Выставлен счёт', user: 'Система'}] },
+    { id: 4, client: 'Дмитрий Соколов', phone: '+7 (999) 456-78-90', service: 'Детейлинг', car: 'Audi A8', status: 'Завершена', price: '₽12,000', time: '13:00', created: '17.01.2026', address: 'СТО №3', notes: 'Химчистка + полировка', history: [{date: '17.01.2026 10:00', action: 'Заявка создана', user: 'Система'}, {date: '17.01.2026 10:30', action: 'Взята в работу', user: 'Сидоров П.'}, {date: '17.01.2026 13:00', action: 'Завершена', user: 'Сидоров П.'}] },
+  ];
+
+  const calculatePrice = () => {
+    const service = services.find(s => s.id === newRequest.service);
+    if (!service) return 0;
+    
+    if (service.id === 'rent') {
+      return service.price * newRequest.days + (service.kmPrice || 0) * newRequest.km;
+    }
+    return service.price;
+  };
 
   const fleet = [
     { id: 1, model: 'Mercedes S-Class', number: 'А001АА777', status: 'Свободен', location: 'Гараж №1', nextService: '23.02.2026' },
@@ -91,10 +131,151 @@ const Index = () => {
                 <Icon name="Calendar" size={16} className="mr-2" />
                 17 января 2026
               </Badge>
-              <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-                <Icon name="Plus" size={18} className="mr-2" />
-                Новая заявка
-              </Button>
+              <Dialog open={isNewRequestOpen} onOpenChange={setIsNewRequestOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
+                    <Icon name="Plus" size={18} className="mr-2" />
+                    Новая заявка
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Создание новой заявки</DialogTitle>
+                    <DialogDescription>Заполните данные для формирования заявки с автоматическим расчётом стоимости</DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-6 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="client">Клиент</Label>
+                        <Input 
+                          id="client" 
+                          placeholder="ФИО или название компании"
+                          value={newRequest.client}
+                          onChange={(e) => setNewRequest({...newRequest, client: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Телефон</Label>
+                        <Input 
+                          id="phone" 
+                          placeholder="+7 (999) 123-45-67"
+                          value={newRequest.phone}
+                          onChange={(e) => setNewRequest({...newRequest, phone: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="service">Услуга</Label>
+                      <Select value={newRequest.service} onValueChange={(val) => setNewRequest({...newRequest, service: val})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите услугу" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {services.map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.name} — ₽{s.price.toLocaleString()} / {s.unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {newRequest.service === 'rent' && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="car">Автомобиль</Label>
+                          <Select value={newRequest.car} onValueChange={(val) => setNewRequest({...newRequest, car: val})}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Выберите авто" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {fleet.filter(c => c.status === 'Свободен').map(c => (
+                                <SelectItem key={c.id} value={c.model}>
+                                  {c.model} ({c.number})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="days">Количество суток</Label>
+                            <Input 
+                              id="days" 
+                              type="number" 
+                              min="1"
+                              value={newRequest.days}
+                              onChange={(e) => setNewRequest({...newRequest, days: parseInt(e.target.value) || 1})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="km">Километраж</Label>
+                            <Input 
+                              id="km" 
+                              type="number" 
+                              min="0"
+                              placeholder="км"
+                              value={newRequest.km}
+                              onChange={(e) => setNewRequest({...newRequest, km: parseInt(e.target.value) || 0})}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Примечания</Label>
+                      <Textarea 
+                        id="notes" 
+                        placeholder="Дополнительная информация..."
+                        value={newRequest.notes}
+                        onChange={(e) => setNewRequest({...newRequest, notes: e.target.value})}
+                        rows={3}
+                      />
+                    </div>
+
+                    {newRequest.service && (
+                      <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">Расчёт стоимости</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            {newRequest.service === 'rent' && (
+                              <>
+                                <div className="flex justify-between text-sm">
+                                  <span>Аренда ({newRequest.days} сут × ₽5,000)</span>
+                                  <span className="font-medium">₽{(5000 * newRequest.days).toLocaleString()}</span>
+                                </div>
+                                {newRequest.km > 0 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span>Пробег ({newRequest.km} км × ₽15)</span>
+                                    <span className="font-medium">₽{(15 * newRequest.km).toLocaleString()}</span>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                              <span>Итого:</span>
+                              <span className="text-primary">₽{calculatePrice().toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsNewRequestOpen(false)}>Отмена</Button>
+                    <Button className="bg-gradient-to-r from-primary to-secondary" onClick={() => setIsNewRequestOpen(false)}>
+                      Создать заявку
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -210,7 +391,11 @@ const Index = () => {
               <CardContent>
                 <div className="space-y-3">
                   {requests.map((req) => (
-                    <div key={req.id} className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group">
+                    <div 
+                      key={req.id} 
+                      onClick={() => setSelectedRequest(req.id)}
+                      className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 grid grid-cols-5 gap-4">
                           <div>
@@ -351,6 +536,134 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={selectedRequest !== null} onOpenChange={() => setSelectedRequest(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedRequest && (() => {
+            const req = requests.find(r => r.id === selectedRequest);
+            if (!req) return null;
+            
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-2xl">Заявка #{req.id}</DialogTitle>
+                      <DialogDescription>Создана {req.created}</DialogDescription>
+                    </div>
+                    <Badge className={cn('border text-sm px-3 py-1', getStatusColor(req.status))}>
+                      {req.status}
+                    </Badge>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Icon name="User" size={20} />
+                        Информация о клиенте
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm text-muted-foreground">Клиент</div>
+                        <div className="font-medium">{req.client}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Телефон</div>
+                        <div className="font-medium">{req.phone}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Icon name="Briefcase" size={20} />
+                        Детали заявки
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-sm text-muted-foreground">Услуга</div>
+                          <div className="font-medium">{req.service}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Автомобиль</div>
+                          <div className="font-medium">{req.car}</div>
+                        </div>
+                      </div>
+                      {req.address && (
+                        <div>
+                          <div className="text-sm text-muted-foreground">Адрес</div>
+                          <div className="font-medium">{req.address}</div>
+                        </div>
+                      )}
+                      {req.notes && (
+                        <div>
+                          <div className="text-sm text-muted-foreground">Примечания</div>
+                          <div className="font-medium text-muted-foreground">{req.notes}</div>
+                        </div>
+                      )}
+                      <div className="pt-4 border-t">
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-medium">Стоимость</span>
+                          <span className="text-2xl font-bold text-primary">{req.price}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Icon name="History" size={20} />
+                        История изменений
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {req.history.map((h, idx) => (
+                          <div key={idx} className="flex gap-3 pb-3 border-b last:border-0">
+                            <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                            <div className="flex-1">
+                              <div className="font-medium">{h.action}</div>
+                              <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                <Icon name="Clock" size={14} />
+                                {h.date}
+                                <span>•</span>
+                                <Icon name="User" size={14} />
+                                {h.user}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1">
+                      <Icon name="Printer" size={18} className="mr-2" />
+                      Печать
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <Icon name="Edit" size={18} className="mr-2" />
+                      Редактировать
+                    </Button>
+                    <Button className="flex-1 bg-gradient-to-r from-primary to-secondary">
+                      <Icon name="Check" size={18} className="mr-2" />
+                      Изменить статус
+                    </Button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
