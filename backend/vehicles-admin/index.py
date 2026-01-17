@@ -111,3 +111,9 @@ def handler(event, context):
             'body': json.dumps({'error': str(e)}),
             'isBase64Encoded': False
         }
+    
+    finally:
+        if 'cur' in locals():
+            cur.close()
+        if 'conn' in locals():
+            conn.close()
