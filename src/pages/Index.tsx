@@ -18,6 +18,8 @@ import MaintenanceStatusDialog from '@/components/MaintenanceStatusDialog';
 import BookingDetailDialog from '@/components/BookingDetailDialog';
 import VehicleHandoverDialog from '@/components/VehicleHandoverDialog';
 import BookingWizard from '@/components/BookingWizard';
+import MobileNav from '@/components/MobileNav';
+import DateClickCalendar from '@/components/DateClickCalendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -55,6 +57,8 @@ const Index = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLeadDetailFormOpen, setIsLeadDetailFormOpen] = useState(false);
   const [clientDataFromLead, setClientDataFromLead] = useState<{ name: string; phone: string } | null>(null);
+  const [isDateCalendarOpen, setIsDateCalendarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [newRequest, setNewRequest] = useState({
     client: '',
     phone: '',
@@ -213,8 +217,8 @@ const Index = () => {
   const userData = USERS[currentUser as keyof typeof USERS];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-sidebar/30">
-      <aside className="fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-6 space-y-8 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-sidebar/30 mobile-container">
+      <aside className="desktop-sidebar fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border md:flex flex-col items-center py-6 space-y-8 z-50 hidden">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
           РФ
         </div>
@@ -250,37 +254,52 @@ const Index = () => {
         ))}
       </aside>
 
-      <main className="ml-20 p-8">
-        <div className="max-w-[1600px] mx-auto space-y-8 animate-fade-in">
-          <div className="flex items-center justify-between">
+      <MobileNav 
+        activeSection={activeSection}
+        onNavigate={setActiveSection}
+        userName={userData.name}
+        userRole={userData.role}
+      />
+
+      <main className="md:ml-20 mobile-main-content p-4 md:p-8">
+        <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-8 animate-fade-in">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                 CRM Русская Фантазия
               </h1>
-              <p className="text-muted-foreground mt-1">Управление заявками и автопарком</p>
+              <p className="text-sm md:text-base text-muted-foreground mt-1">Управление заявками и автопарком</p>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="px-4 py-2">
+            <div className="flex items-center gap-2 md:gap-4 flex-wrap w-full md:w-auto">
+              <Badge variant="outline" className="hidden md:flex px-4 py-2">
                 <Icon name="User" size={16} className="mr-2" />
                 {userData.name} • {userData.role}
               </Badge>
-              <Badge variant="outline" className="px-4 py-2">
-                <Icon name="Calendar" size={16} className="mr-2" />
-                17 января 2026
+              <Badge 
+                variant="outline" 
+                className="px-3 md:px-4 py-2 cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => {
+                  setSelectedDate(new Date());
+                  setIsDateCalendarOpen(true);
+                }}
+              >
+                <Icon name="Calendar" size={14} className="mr-1 md:mr-2" />
+                <span className="text-xs md:text-sm">17 января</span>
               </Badge>
-              <Button variant="outline">
-                <Icon name="Download" size={18} className="mr-2" />
+              <Button variant="outline" className="hidden md:flex" size="sm">
+                <Icon name="Download" size={16} className="mr-2" />
                 Экспорт
               </Button>
-              <Button variant="outline" onClick={handleLogout}>
-                <Icon name="LogOut" size={18} className="mr-2" />
+              <Button variant="outline" onClick={handleLogout} size="sm" className="hidden md:flex">
+                <Icon name="LogOut" size={16} className="mr-2" />
                 Выйти
               </Button>
               <Button 
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 md:flex-none"
                 onClick={() => setIsBookingWizardOpen(true)}
+                size="sm"
               >
-                <Icon name="Plus" size={18} className="mr-2" />
+                <Icon name="Plus" size={16} className="mr-2" />
                 Новая заявка
               </Button>
             </div>
@@ -661,7 +680,7 @@ const Index = () => {
 
           {activeSection === 'dashboard' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
                 <Card 
                   className="bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 animate-scale-in cursor-pointer"
                   onClick={() => setActiveSection('leads')}
@@ -669,31 +688,16 @@ const Index = () => {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Icon name="Edit" size={20} className="text-purple-500" />
-                        <CardTitle className="text-lg">Вишлист</CardTitle>
+                        <Icon name="Zap" size={18} className="text-purple-500" />
+                        <CardTitle className="text-base md:text-lg">Лиды</CardTitle>
                       </div>
-                      <Icon name="ChevronRight" size={20} className="text-purple-500" />
+                      <Icon name="ChevronRight" size={18} className="text-purple-500" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">На сумму 9 000 руб (1)</div>
-                    <div className="space-y-3">
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-purple-500/50 transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveSection('leads');
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-purple-600 text-white">7 000</Badge>
-                          <span className="text-xs text-muted-foreground">300 км</span>
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Клиент</div>
-                          <div className="text-xs text-muted-foreground">+79084431152 → Краснодар</div>
-                        </div>
-                      </div>
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Icon name="Zap" size={32} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-xs md:text-sm">Лидов пока нет</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -712,50 +716,9 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">На сумму 152 000 руб (3)</div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-red-600 text-white">40 000</Badge>
-                          <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Клецов Иван → Краснодар</div>
-                          <div className="text-xs text-muted-foreground">06.02.2026 13:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-red-600 text-white">34 000</Badge>
-                          <Badge variant="secondary" className="text-xs">М464КУ193</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Сартсев Кадикис → Краснодар</div>
-                          <div className="text-xs text-muted-foreground">06.02.2026 20:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">10.02.2026 20:00 — Офис</div>
-                        </div>
-                      </div>
-                      <div 
-                        className="p-3 rounded-lg bg-background/80 border border-border/50 cursor-pointer hover:border-orange-500/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setActiveSection('requests'); }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-orange-600 text-white">108 000</Badge>
-                          <Badge variant="secondary" className="text-xs">О008ВХ323</Badge>
-                        </div>
-                        <div className="text-sm space-y-1">
-                          <div className="font-medium">Пылкиков Дмитрий → Санкт-Петербург</div>
-                          <div className="text-xs text-muted-foreground">22.02.2026 10:00 — Офис</div>
-                          <div className="text-xs text-muted-foreground">08.03.2026 10:00 — Офис</div>
-                        </div>
-                      </div>
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Icon name="ClipboardList" size={32} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-xs md:text-sm">Заявок пока нет</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -922,19 +885,18 @@ const Index = () => {
                 </Card>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 <Card className="bg-orange-100/30 border-orange-500/30">
                   <CardHeader className="flex flex-row items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
-                      <Icon name="AlertCircle" size={20} className="text-orange-600" />
-                      <CardTitle className="text-lg text-orange-900">Истекает страховка</CardTitle>
+                      <Icon name="AlertCircle" size={18} className="text-orange-600" />
+                      <CardTitle className="text-base md:text-lg text-orange-900">Истекает страховка</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {['Н692АН126', 'В118ВС777', 'А194ЕЕ193', 'В118ВС777', 'А218ЕТ550', 'Н692АН126'].map((num, idx) => (
-                        <Badge key={idx} variant="destructive" className="mr-2">{num}</Badge>
-                      ))}
+                    <div className="text-center py-4 text-muted-foreground">
+                      <Icon name="Shield" size={32} className="mx-auto mb-2 opacity-50 text-success" />
+                      <p className="text-xs md:text-sm">Все страховки в порядке</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -942,15 +904,14 @@ const Index = () => {
                 <Card className="bg-red-100/30 border-red-500/30">
                   <CardHeader className="flex flex-row items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
-                      <Icon name="AlertTriangle" size={20} className="text-red-600" />
-                      <CardTitle className="text-lg text-red-900">Необходимо обслуживание</CardTitle>
+                      <Icon name="AlertTriangle" size={18} className="text-red-600" />
+                      <CardTitle className="text-base md:text-lg text-red-900">Необходимо обслуживание</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {['Н692АН126', 'Н692АН126', 'Х776ТС193', 'Р828ТУ193', 'В118ВС777', 'А194ЕЕ193', 'В118ВС777', 'А218ЕТ550', 'Н692АН126', 'Р828ТУ193', 'В118ВС777'].map((num, idx) => (
-                        <Badge key={idx} className="mr-2 bg-red-600 text-white">{num}</Badge>
-                      ))}
+                    <div className="text-center py-4 text-muted-foreground">
+                      <Icon name="Wrench" size={32} className="mx-auto mb-2 opacity-50 text-success" />
+                      <p className="text-xs md:text-sm">Все авто обслужены</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1543,6 +1504,17 @@ const Index = () => {
       />
 
       {activeSection === 'partners' && <PartnersSection />}
+
+      <DateClickCalendar
+        open={isDateCalendarOpen}
+        onOpenChange={setIsDateCalendarOpen}
+        date={selectedDate}
+        bookings={bookings}
+        onNavigateToCalendar={() => {
+          setIsDateCalendarOpen(false);
+          setActiveSection('calendar');
+        }}
+      />
     </div>
   );
 };

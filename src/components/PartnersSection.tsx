@@ -180,74 +180,80 @@ export const PartnersSection = () => {
         </CardHeader>
 
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {partners.map((partner) => (
-              <Card key={partner.id} className="hover:border-primary/50 transition-all">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-lg">{partner.company_name}</CardTitle>
-                        <Badge variant={partner.type === 'subrent' ? 'default' : 'secondary'}>
-                          {getPartnerTypeLabel(partner.type)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {partner.contact_person} • {partner.phone}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(partner)}>
-                        <Icon name="Edit" size={16} />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDelete(partner.id)}>
-                        <Icon name="Trash2" size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {partner.type === 'subrent' && partner.vehicles && partner.vehicles.length > 0 && (
-                    <div>
-                      <div className="text-sm font-medium mb-1">Автомобили:</div>
-                      {partner.vehicles.map((vehicle, idx) => (
-                        <div key={idx} className="text-sm p-2 bg-sidebar/20 rounded mb-1">
-                          {vehicle.model} ({vehicle.license_plate}) — {vehicle.daily_rate}₽/сутки
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {partner.type === 'contractor' && partner.services && partner.services.length > 0 && (
-                    <div>
-                      <div className="text-sm font-medium mb-1">Услуги:</div>
-                      {partner.services.map((service, idx) => (
-                        <div key={idx} className="text-sm p-2 bg-sidebar/20 rounded mb-1">
-                          {service.name} — {service.price}₽/{service.unit}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {partner.notes && (
-                    <div className="text-sm text-muted-foreground pt-2 border-t">
-                      {partner.notes}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {partners.length === 0 && (
+          {partners.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <Icon name="Handshake" size={48} className="mx-auto mb-3 opacity-50" />
-              <p>Нет добавленных партнёров</p>
+              <Icon name="Handshake" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Партнёров пока нет</p>
               <Button variant="outline" className="mt-4" onClick={() => setIsFormOpen(true)}>
                 <Icon name="Plus" size={16} className="mr-2" />
                 Добавить первого партнёра
               </Button>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {partners.map((partner) => (
+                <Card key={partner.id} className="hover:border-primary/50 transition-all">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <CardTitle className="text-base sm:text-lg truncate">{partner.company_name}</CardTitle>
+                          <Badge variant={partner.type === 'subrent' ? 'default' : 'secondary'} className="self-start">
+                            {getPartnerTypeLabel(partner.type)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                          {partner.contact_person} • {partner.phone}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 self-end sm:self-start">
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(partner)}>
+                          <Icon name="Edit" size={16} />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDelete(partner.id)}>
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2 pt-0">
+                    {partner.type === 'subrent' && partner.vehicles && partner.vehicles.length > 0 && (
+                      <div>
+                        <div className="text-xs sm:text-sm font-medium mb-1">Автомобили:</div>
+                        <div className="space-y-1">
+                          {partner.vehicles.map((vehicle, idx) => (
+                            <div key={idx} className="text-xs sm:text-sm p-2 bg-sidebar/20 rounded">
+                              <div className="font-medium">{vehicle.model}</div>
+                              <div className="text-muted-foreground">{vehicle.license_plate} — {vehicle.daily_rate}₽/сутки</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {partner.type === 'contractor' && partner.services && partner.services.length > 0 && (
+                      <div>
+                        <div className="text-xs sm:text-sm font-medium mb-1">Услуги:</div>
+                        <div className="space-y-1">
+                          {partner.services.map((service, idx) => (
+                            <div key={idx} className="text-xs sm:text-sm p-2 bg-sidebar/20 rounded">
+                              <div className="font-medium">{service.name}</div>
+                              <div className="text-muted-foreground">{service.price}₽/{service.unit}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {partner.notes && (
+                      <div className="text-xs sm:text-sm text-muted-foreground pt-2 border-t">
+                        {partner.notes}
+                      </div>
+                    )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           )}
         </CardContent>
       </Card>
