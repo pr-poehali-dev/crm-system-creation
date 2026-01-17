@@ -423,20 +423,23 @@ export const IntegrationsPage = () => {
                           <p className="font-semibold text-base">Шаг 1: Добавьте Redirect URI на Avito</p>
                           <ol className="list-decimal list-inside space-y-3 text-muted-foreground pl-2">
                             <li>
-                              Откройте страницу вашего приложения:{" "}
+                              Откройте:{" "}
                               <a 
-                                href="https://autoload.avito.ru/applications" 
+                                href="https://developers.avito.ru/applications" 
                                 target="_blank" 
                                 className="text-primary hover:underline font-medium"
                               >
-                                autoload.avito.ru/applications
+                                developers.avito.ru → Мои приложения
                               </a>
                             </li>
                             <li>
-                              Найдите поле <strong>"Redirect URI"</strong> (URL переадресации)
+                              Нажмите <strong>"Добавить приложение"</strong> или откройте существующее
                             </li>
                             <li>
-                              Скопируйте и вставьте туда эту ссылку:
+                              <strong>В поле "Название"</strong> введите: <span className="font-mono bg-muted px-2 py-0.5 rounded">CRM Русская Фантазия</span>
+                            </li>
+                            <li>
+                              <strong>В поле "Redirect URL"</strong> вставьте эту ссылку:
                               <div className="mt-2 p-3 bg-muted rounded-lg border font-mono text-xs break-all">
                                 https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe
                               </div>
@@ -448,7 +451,7 @@ export const IntegrationsPage = () => {
                                   navigator.clipboard.writeText('https://functions.poehali.dev/7fd067bc-2105-405e-9d29-2694f2701abe');
                                   toast({
                                     title: "Скопировано!",
-                                    description: "Redirect URI скопирован в буфер обмена",
+                                    description: "Redirect URL скопирован в буфер обмена",
                                   });
                                 }}
                               >
@@ -456,7 +459,10 @@ export const IntegrationsPage = () => {
                                 Скопировать ссылку
                               </Button>
                             </li>
-                            <li>Нажмите <strong>"Сохранить"</strong> на странице приложения Avito</li>
+                            <li>
+                              <strong>В поле "Назначение приложения"</strong> выберите: <span className="font-mono bg-muted px-2 py-0.5 rounded">Обмен сообщениями</span>
+                            </li>
+                            <li>Нажмите <strong>"Запросить доступ"</strong> внизу формы</li>
                           </ol>
                         </div>
 
