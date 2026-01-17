@@ -277,9 +277,15 @@ const Index = () => {
               >
                 <Icon name="Plus" size={18} className="mr-2" />
                 Новая заявка
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              </Button>
+            </div>
+          </div>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <div></div>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Создание новой заявки</DialogTitle>
                     <DialogDescription>Заполните данные для формирования заявки с автоматическим расчётом стоимости</DialogDescription>
@@ -647,8 +653,6 @@ const Index = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
 
           {activeSection === 'dashboard' && (
             <div className="space-y-6">
@@ -1520,26 +1524,6 @@ const Index = () => {
           })()}
         </DialogContent>
       </Dialog>
-
-      {activeSection === 'services' && <ServicesSection />}
-      {activeSection === 'finance' && <FinanceSection />}
-      {activeSection === 'settings' && <SettingsSection />}
-      {activeSection === 'calendar' && <CalendarSection />}
-      {activeSection === 'integrations' && <IntegrationsPage />}
-      {activeSection === 'leads' && (
-        <LeadsSection 
-          onConvertToClient={(leadData) => {
-            setClientDataFromLead(leadData);
-            setActiveSection('clients');
-          }}
-        />
-      )}
-      {activeSection === 'clients' && (
-        <ClientsSection 
-          initialClientData={clientDataFromLead || undefined}
-          autoOpenAdd={!!clientDataFromLead}
-        />
-      )}
 
       <AddVehicleDialog 
         open={isAddVehicleOpen} 
