@@ -802,6 +802,56 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              <div className="space-y-2">
+                <Label>Фото паспорта (разворот с фото)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          updateData('client_passport_photo_front', reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  {bookingData.client_passport_photo_front && (
+                    <img src={bookingData.client_passport_photo_front} alt="Passport" className="w-20 h-20 object-cover rounded border" />
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Фото паспорта (разворот с пропиской)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          updateData('client_passport_photo_back', reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  {bookingData.client_passport_photo_back && (
+                    <img src={bookingData.client_passport_photo_back} alt="Passport Registration" className="w-20 h-20 object-cover rounded border" />
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
