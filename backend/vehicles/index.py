@@ -17,7 +17,7 @@ def get_db_connection():
     return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event, context):
-    method = event.get('httpMethod', 'GET')
+    method = event.get('httpMethod', 'GET') 
     
     if method == 'OPTIONS':
         return {

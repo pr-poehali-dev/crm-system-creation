@@ -13,7 +13,7 @@ def get_db_connection():
     return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event: dict, context) -> dict:
-    method = event.get('httpMethod', 'GET')
+    method = event.get('httpMethod', 'GET') 
     
     # CORS preflight
     if method == 'OPTIONS':

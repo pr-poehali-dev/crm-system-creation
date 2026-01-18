@@ -16,7 +16,7 @@ def get_db_connection():
 
 def handler(event: dict, context) -> dict:
     """API для управления бронированиями"""
-    method = event.get('httpMethod', 'GET')
+    method = event.get('httpMethod', 'GET') 
     
     # CORS preflight
     if method == 'OPTIONS':
