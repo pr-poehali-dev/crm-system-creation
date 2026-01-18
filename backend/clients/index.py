@@ -245,6 +245,10 @@ def handler(event: dict, context) -> dict:
             }
             
     except Exception as e:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
         return {
             'statusCode': 500,
             'headers': {

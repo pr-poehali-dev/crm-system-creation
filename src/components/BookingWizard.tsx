@@ -212,9 +212,49 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     return total;
   };
 
+  const saveClientIfNotExists = async () => {
+    if (!bookingData.client_name || !bookingData.client_phone) return;
+
+    try {
+      const clientsResponse = await fetch(CLIENTS_API);
+      const clientsData = await clientsResponse.json();
+      const existingClient = clientsData.clients?.find((c: any) => 
+        c.phone === bookingData.client_phone
+      );
+
+      if (!existingClient) {
+        await fetch(CLIENTS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: bookingData.client_name,
+            phone: bookingData.client_phone,
+            email: bookingData.client_email,
+            city: bookingData.client_city,
+            birth_date: bookingData.client_birth_date,
+            telegram: bookingData.client_telegram,
+            whatsapp: bookingData.client_whatsapp,
+            passport_series: bookingData.client_passport_series,
+            passport_number: bookingData.client_passport_number,
+            passport_issued_by: bookingData.client_passport_issued_by,
+            passport_issued_date: bookingData.client_passport_issued_date,
+            address: bookingData.client_passport_registration,
+            driver_license_series: bookingData.client_driver_license_series,
+            driver_license_number: bookingData.client_driver_license_number,
+            driver_license_issued_date: bookingData.client_driver_license_issued_date,
+            source: 'booking'
+          })
+        });
+      }
+    } catch (error) {
+      console.error('Error saving client:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
-      // Финальное сохранение со статусом "Бронь"
+      await saveClientIfNotExists();
+
       const response = await fetch(BOOKINGS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -240,7 +280,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       });
       
       onOpenChange(false);
-      window.location.reload(); // Обновляем список броней
+      window.location.reload();
     } catch (error) {
       toast({
         title: 'Ошибка',

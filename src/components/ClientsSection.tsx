@@ -88,8 +88,8 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
       });
       if (response.ok) {
         const result = await response.json();
-        if (!clientId && result.id) {
-          setClientId(result.id);
+        if (!clientId && result.client?.id) {
+          setClientId(result.client.id);
         }
       }
     },
@@ -168,7 +168,6 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     }
 
     try {
-      // Финальное сохранение со статусом "Активен"
       const clientData = { 
         ...newClient, 
         id: clientId,
@@ -181,7 +180,10 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         body: JSON.stringify(clientData)
       });
       
-      if (!response.ok) throw new Error('Failed to add client');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save client');
+      }
       
       const data = await response.json();
       
@@ -208,16 +210,16 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
       setLicensePhotos([]);
 
       toast({
-        title: "Клиент добавлен",
-        description: `${newClient.name} успешно добавлен в базу`,
+        title: clientId ? "Клиент обновлён" : "Клиент добавлен",
+        description: `${newClient.name} успешно ${clientId ? 'обновлён' : 'добавлен в базу'}`,
       });
       
       await loadClients();
-    } catch (error) {
-      console.error('Error adding client:', error);
+    } catch (error: any) {
+      console.error('Error saving client:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось добавить клиента",
+        description: error.message || "Не удалось сохранить клиента",
         variant: "destructive",
       });
     }
@@ -360,7 +362,10 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                               method: 'DELETE'
                             });
                             
-                            if (!response.ok) throw new Error('Failed to delete');
+                            if (!response.ok) {
+                              const errorData = await response.json().catch(() => ({}));
+                              throw new Error(errorData.error || 'Failed to delete');
+                            }
                             
                             toast({
                               title: "Клиент удалён",
@@ -368,10 +373,11 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                             });
                             
                             await loadClients();
-                          } catch (error) {
+                          } catch (error: any) {
+                            console.error('Delete error:', error);
                             toast({
                               title: "Ошибка",
-                              description: "Не удалось удалить клиента",
+                              description: error.message || "Не удалось удалить клиента",
                               variant: "destructive",
                             });
                           }
@@ -818,8 +824,10 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
                           description: `Данные ${editClient.name} успешно обновлены`,
                         });
                         
+                        setIsDetailDialogOpen(false);
                         await loadClients();
                       } catch (error) {
+                        console.error('Update error:', error);
                         toast({
                           title: "Ошибка",
                           description: "Не удалось обновить клиента",
