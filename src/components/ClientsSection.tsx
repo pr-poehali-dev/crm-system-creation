@@ -121,16 +121,31 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
     try {
       setIsLoadingBookings(true);
       const response = await fetch(BOOKINGS_API);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load bookings');
+      }
+      
       const data = await response.json();
-      // Фильтруем заказы по ID клиента (или по имени/телефону)
       const clientName = selectedClient?.name;
       const clientPhone = selectedClient?.phone;
-      const bookings = data.bookings?.filter((b: any) => 
-        b.client_name === clientName || b.client_phone === clientPhone
-      ) || [];
+      
+      // Безопасная фильтрация с проверкой на undefined/null
+      const bookings = (data.bookings || []).filter((b: any) => {
+        if (!b) return false;
+        return (b.client_name && b.client_name === clientName) || 
+               (b.client_phone && b.client_phone === clientPhone);
+      });
+      
       setClientBookings(bookings);
     } catch (error) {
       console.error('Error loading client bookings:', error);
+      toast({
+        title: "Не удалось загрузить заказы",
+        description: "Попробуйте обновить страницу",
+        variant: "destructive",
+      });
+      setClientBookings([]);
     } finally {
       setIsLoadingBookings(false);
     }
