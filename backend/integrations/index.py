@@ -1,4 +1,4 @@
-"""Единая функция для всех интеграций: Google Calendar, ЮKassa, экспорт .ics"""
+"""Единая функция для всех интеграций: Google Calendar, ЮKassa, экспорт .ics, импорт MyRadius"""
 import json
 import os
 import uuid
@@ -8,10 +8,13 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import requests
 from base64 import b64encode
+import re
+
+SCHEMA = 't_p81623955_crm_system_creation'
 
 def get_db_connection():
     dsn = os.environ.get('DATABASE_URL')
-    return psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+    return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 # ========== GOOGLE CALENDAR ==========
 
@@ -135,6 +138,129 @@ def check_yukassa_payment(payment_id: str) -> Dict[str, Any]:
         headers={'Authorization': auth}
     )
     return response.json() if response.status_code == 200 else {'error': response.text}
+
+# ========== MYRADIUS IMPORT ==========
+
+MYRADIUS_ICS_URL = 'https://api.myradius.ru/platform-calendar/api/v1/calendar/ical/ac0071f018d6ac7568394853c44cef1f@myradius.ru/calendar.ics'
+
+def parse_ics_datetime(ics_date: str) -> datetime:
+    """Парсит дату из ICS формата"""
+    try:
+        # Форматы: 20260120T100000 или 20260120T100000Z
+        ics_date = ics_date.strip().replace('Z', '')
+        return datetime.strptime(ics_date, '%Y%m%dT%H%M%S')
+    except:
+        return datetime.now()
+
+def unescape_ics(text: str) -> str:
+    """Убирает экранирование из ICS текста"""
+    if not text:
+        return ''
+    return text.replace('\\n', '\n').replace('\\,', ',').replace('\\;', ';').replace('\\\\', '\\')
+
+def import_myradius_bookings() -> Dict[str, Any]:
+    """Импортирует бронирования из MyRadius календаря"""
+    try:
+        response = requests.get(MYRADIUS_ICS_URL, timeout=10)
+        if response.status_code != 200:
+            return {'error': f'Ошибка загрузки календаря: HTTP {response.status_code}'}
+        
+        ics_content = response.text
+        
+        # Парсинг ICS файла
+        events = []
+        current_event = {}
+        in_event = False
+        
+        for line in ics_content.split('\n'):
+            line = line.strip()
+            
+            if line == 'BEGIN:VEVENT':
+                in_event = True
+                current_event = {}
+            elif line == 'END:VEVENT':
+                in_event = False
+                if current_event:
+                    events.append(current_event)
+            elif in_event and ':' in line:
+                key, value = line.split(':', 1)
+                current_event[key] = value
+        
+        # Сохранение в БД
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        imported = 0
+        skipped = 0
+        
+        for event in events:
+            try:
+                # Извлечение данных
+                summary = unescape_ics(event.get('SUMMARY', 'Без названия'))
+                description = unescape_ics(event.get('DESCRIPTION', ''))
+                start_date = parse_ics_datetime(event.get('DTSTART', ''))
+                end_date = parse_ics_datetime(event.get('DTEND', ''))
+                uid = event.get('UID', f'myradius-{uuid.uuid4()}')
+                
+                # Извлечение имени клиента из описания или названия
+                client_name = summary.split('-')[0].strip() if '-' in summary else summary
+                client_phone = ''
+                
+                # Поиск телефона в описании
+                phone_match = re.search(r'\+?\d[\d\s\(\)\-]{7,}', description)
+                if phone_match:
+                    client_phone = phone_match.group(0)
+                
+                # Проверка, не существует ли уже такая бронь
+                cursor.execute("""
+                    SELECT id FROM bookings 
+                    WHERE client_name = %s 
+                    AND start_date = %s 
+                    AND end_date = %s
+                    LIMIT 1
+                """, (client_name, start_date, end_date))
+                
+                existing = cursor.fetchone()
+                
+                if existing:
+                    skipped += 1
+                    continue
+                
+                # Создание новой брони
+                cursor.execute("""
+                    INSERT INTO bookings (
+                        client_name, client_phone, start_date, end_date,
+                        status, notes, booking_type, total_price, paid_amount,
+                        source, custom_fields
+                    ) VALUES (
+                        %s, %s, %s, %s,
+                        'Бронь', %s, 'myradius', 0, 0,
+                        'MyRadius', %s::jsonb
+                    )
+                """, (
+                    client_name, client_phone, start_date, end_date,
+                    description,
+                    json.dumps([{'name': 'MyRadius UID', 'value': uid}])
+                ))
+                
+                imported += 1
+                
+            except Exception as e:
+                print(f"Ошибка импорта события: {e}")
+                continue
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            'success': True,
+            'imported': imported,
+            'skipped': skipped,
+            'total': len(events)
+        }
+        
+    except Exception as e:
+        return {'error': f'Ошибка импорта: {str(e)}'}
 
 # ========== ICS EXPORT ==========
 
@@ -288,6 +414,17 @@ def handler(event: dict, context) -> dict:
                     conn.close()
             
             return {'statusCode': 200, 'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}, 'body': json.dumps(payment), 'isBase64Encoded': False}
+        
+        # ===== MYRADIUS IMPORT =====
+        elif action == 'myradius_import':
+            result = import_myradius_bookings()
+            status = 200 if result.get('success') else 400
+            return {
+                'statusCode': status,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'body': json.dumps(result),
+                'isBase64Encoded': False
+            }
         
         # ===== ICS EXPORT =====
         elif action == 'export_ics':

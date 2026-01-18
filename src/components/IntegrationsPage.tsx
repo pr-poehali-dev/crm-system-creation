@@ -30,6 +30,7 @@ export const IntegrationsPage = () => {
   const [avitoAuthLoading, setAvitoAuthLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 'avito',
@@ -109,6 +110,18 @@ export const IntegrationsPage = () => {
       config: {},
     },
     {
+      id: 'myradius',
+      name: 'MyRadius Календарь',
+      type: 'calendar',
+      icon: 'CalendarClock',
+      color: 'from-indigo-500 to-purple-600',
+      description: 'Импорт и синхронизация записей из MyRadius календаря',
+      isActive: true,
+      config: {
+        ics_url: 'https://api.myradius.ru/platform-calendar/api/v1/calendar/ical/ac0071f018d6ac7568394853c44cef1f@myradius.ru/calendar.ics'
+      },
+    },
+    {
       id: 'yandex_direct',
       name: 'Яндекс.Директ',
       type: 'advertising',
@@ -185,6 +198,35 @@ export const IntegrationsPage = () => {
       });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleMyRadiusImport = async () => {
+    setIsImporting(true);
+    try {
+      const response = await fetch(`${INTEGRATIONS_API}?action=myradius_import`);
+      const data = await response.json();
+      
+      if (data.error) {
+        toast({
+          title: "Ошибка импорта",
+          description: data.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Импорт завершён",
+          description: `Импортировано: ${data.imported} новых записей, пропущено: ${data.skipped} (уже существуют)`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось импортировать календарь MyRadius",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -355,6 +397,20 @@ export const IntegrationsPage = () => {
                     >
                       <Icon name={isExporting ? "Loader2" : "Download"} size={16} className={`mr-2 ${isExporting && 'animate-spin'}`} />
                       {isExporting ? 'Экспорт...' : 'Скачать .ics'}
+                    </Button>
+                  ) : integration.id === 'myradius' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMyRadiusImport();
+                      }}
+                      disabled={isImporting}
+                    >
+                      <Icon name={isImporting ? "Loader2" : "Import"} size={16} className={`mr-2 ${isImporting && 'animate-spin'}`} />
+                      {isImporting ? 'Импорт...' : 'Импортировать записи'}
                     </Button>
                   ) : (
                     <Button 
