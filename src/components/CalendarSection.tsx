@@ -83,6 +83,8 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
   }, [currentDate]);
 
   const handleExportCalendar = async () => {

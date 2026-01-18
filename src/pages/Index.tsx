@@ -177,6 +177,13 @@ const Index = () => {
 
     loadFleet();
     loadBookings();
+    
+    const interval = setInterval(() => {
+      loadFleet();
+      loadBookings();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const getStatusColor = (status: string) => {

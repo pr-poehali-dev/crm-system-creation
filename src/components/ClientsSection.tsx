@@ -91,12 +91,15 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
         if (!clientId && result.client?.id) {
           setClientId(result.client.id);
         }
+        loadClients();
       }
     },
   });
 
   useEffect(() => {
     loadClients();
+    const interval = setInterval(loadClients, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadClients = async () => {
