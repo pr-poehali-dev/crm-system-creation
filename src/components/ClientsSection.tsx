@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import ClientAnalytics from '@/components/ClientAnalytics';
+import { loadClients as apiLoadClients, saveClient, deleteClient, API_ENDPOINTS } from '@/lib/api';
 
 interface Client {
   id: number;
@@ -38,8 +39,7 @@ interface ClientsSectionProps {
   autoOpenAdd?: boolean;
 }
 
-const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57';
-const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
+const BOOKINGS_API = API_ENDPOINTS.bookings;
 
 export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectionProps = {}) => {
   const { toast } = useToast();
@@ -105,16 +105,10 @@ export const ClientsSection = ({ initialClientData, autoOpenAdd }: ClientsSectio
   const loadClients = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(CLIENTS_API);
-      const data = await response.json();
+      const data = await apiLoadClients();
       setClients(data.clients || []);
     } catch (error) {
       console.error('Error loading clients:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить список клиентов",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }

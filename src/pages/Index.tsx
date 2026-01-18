@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMStore } from '@/lib/store';
+import { useCRMBookings, useCRMVehicles } from '@/hooks/use-crm-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ServicesSection from '@/components/ServicesSection';
 import FinanceSection from '@/components/FinanceSection';
@@ -22,6 +23,7 @@ import VehicleHandoverHistory from '@/components/VehicleHandoverHistory';
 import BookingWizard from '@/components/BookingWizard';
 import MobileNav from '@/components/MobileNav';
 import DateClickCalendar from '@/components/DateClickCalendar';
+import CacheCleaner from '@/components/CacheCleaner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,10 +113,8 @@ const Index = () => {
   ];
 
   const [requests, setRequests] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
-
-  const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
+  
+  const { bookings, isLoading: isLoadingBookings } = useCRMBookings();
 
   const calculatePrice = () => {
     let total = 0;
@@ -136,51 +136,14 @@ const Index = () => {
     return total;
   };
 
-  const fleet = useCRMStore((state) => state.vehicles);
+  const { vehicles: fleet, isLoading: isLoadingFleet } = useCRMVehicles();
   const setFleet = useCRMStore((state) => state.setVehicles);
-  const [isLoadingFleet, setIsLoadingFleet] = useState(true);
-
-  const loadBookings = async () => {
-    try {
-      const response = await fetch(BOOKINGS_API);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      setBookings(data.bookings || []);
-    } catch (error) {
-      console.error('Error loading bookings:', error);
-    } finally {
-      setIsLoadingBookings(false);
-    }
-  };
 
   useEffect(() => {
-    const loadFleet = async () => {
-      try {
-        const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f');
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const data = await response.json();
-        setFleet(data.vehicles || []);
-      } catch (error) {
-        console.error('Error loading fleet:', error);
-      } finally {
-        setIsLoadingFleet(false);
-      }
-    };
-
-    loadFleet();
-    loadBookings();
-    
-    const interval = setInterval(() => {
-      loadFleet();
-      loadBookings();
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
+    if (fleet.length > 0) {
+      setFleet(fleet);
+    }
+  }, [fleet, setFleet]);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -291,12 +254,13 @@ const Index = () => {
                 }}
               >
                 <Icon name="Calendar" size={14} className="mr-1 md:mr-2" />
-                <span className="text-xs md:text-sm">17 января</span>
+                <span className="text-xs md:text-sm">{new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>
               </Badge>
               <Button variant="outline" className="hidden md:flex" size="sm">
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт
               </Button>
+              <CacheCleaner />
               <Button variant="outline" onClick={handleLogout} size="sm" className="hidden md:flex">
                 <Icon name="LogOut" size={16} className="mr-2" />
                 Выйти

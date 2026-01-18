@@ -60,9 +60,16 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
   const loadData = async () => {
     setIsLoading(true);
     try {
+      const timestamp = Date.now();
       const [bookingsResponse, vehiclesResponse] = await Promise.all([
-        fetch(BOOKINGS_API),
-        fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f')
+        fetch(BOOKINGS_API + '?t=' + timestamp, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        }),
+        fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f?t=' + timestamp, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        })
       ]);
       
       const bookingsData = await bookingsResponse.json();
