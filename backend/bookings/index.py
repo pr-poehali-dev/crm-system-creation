@@ -129,6 +129,15 @@ def create_booking(conn, event: dict) -> dict:
     
     cursor = conn.cursor()
     
+    # Очистка старых черновиков этого клиента (более 1 часа)
+    if data.get('status') == 'Черновик':
+        cursor.execute("""
+            DELETE FROM bookings 
+            WHERE client_phone = %s 
+            AND status = 'Черновик' 
+            AND created_at < NOW() - INTERVAL '1 hour'
+        """, (data['client_phone'],))
+    
     # Получение данных об автомобиле если указан vehicle_id
     vehicle_model = data.get('vehicle_model')
     vehicle_plate = data.get('vehicle_license_plate')

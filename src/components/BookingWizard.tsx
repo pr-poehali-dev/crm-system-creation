@@ -25,6 +25,7 @@ const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43
 export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate }: BookingWizardProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [bookingId, setBookingId] = useState<number | null>(null);
   const [bookingData, setBookingData] = useState<any>({
     booking_type: 'rent',
     request_type: 'rent',
@@ -82,6 +83,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
   // Автосохранение при каждом изменении bookingData
   useEffect(() => {
+    if (!open) return;
     if (!bookingData.client_name || !bookingData.start_date) return;
     if (requestType === 'rent' && !selectedVehicle) return;
     
@@ -89,10 +91,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       try {
         setSaveStatus('saving');
         const response = await fetch(BOOKINGS_API, {
-          method: 'POST',
+          method: bookingId ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...bookingData,
+            id: bookingId,
             request_type: requestType,
             vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
             vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
@@ -103,6 +106,10 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
         });
         
         if (response.ok) {
+          const data = await response.json();
+          if (!bookingId && data.booking?.id) {
+            setBookingId(data.booking.id);
+          }
           setSaveStatus('saved');
           setTimeout(() => setSaveStatus('idle'), 2000);
         } else {
@@ -114,9 +121,9 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       }
     };
 
-    const timeoutId = setTimeout(saveBooking, 1000);
+    const timeoutId = setTimeout(saveBooking, 1500);
     return () => clearTimeout(timeoutId);
-  }, [bookingData, selectedVehicle, requestType]);
+  }, [bookingData, selectedVehicle, requestType, open]);
 
   const searchClientByPhone = async (phone: string) => {
     if (phone.length < 5) return;
@@ -221,38 +228,54 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   };
 
   const saveClientIfNotExists = async () => {
-    if (!bookingData.client_name || !bookingData.client_phone) return;
+    if (!bookingData.client_name || !bookingData.client_phone) {
+      console.log('Skipping client save - missing name or phone');
+      return;
+    }
 
     try {
+      console.log('Checking for existing client:', bookingData.client_phone);
       const clientsResponse = await fetch(CLIENTS_API);
       const clientsData = await clientsResponse.json();
       const existingClient = clientsData.clients?.find((c: any) => 
         c.phone === bookingData.client_phone
       );
 
-      if (!existingClient) {
-        await fetch(CLIENTS_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: bookingData.client_name,
-            phone: bookingData.client_phone,
-            email: bookingData.client_email,
-            city: bookingData.client_city,
-            birth_date: bookingData.client_birth_date,
-            telegram: bookingData.client_telegram,
-            whatsapp: bookingData.client_whatsapp,
-            passport_series: bookingData.client_passport_series,
-            passport_number: bookingData.client_passport_number,
-            passport_issued_by: bookingData.client_passport_issued_by,
-            passport_issued_date: bookingData.client_passport_issued_date,
-            address: bookingData.client_passport_registration,
-            driver_license_series: bookingData.client_driver_license_series,
-            driver_license_number: bookingData.client_driver_license_number,
-            driver_license_issued_date: bookingData.client_driver_license_issued_date,
-            source: 'booking'
-          })
-        });
+      if (existingClient) {
+        console.log('Client already exists:', existingClient.id);
+        return;
+      }
+
+      console.log('Creating new client:', bookingData.client_name);
+      const createResponse = await fetch(CLIENTS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: bookingData.client_name,
+          phone: bookingData.client_phone,
+          email: bookingData.client_email,
+          city: bookingData.client_city,
+          birth_date: bookingData.client_birth_date,
+          telegram: bookingData.client_telegram,
+          whatsapp: bookingData.client_whatsapp,
+          passport_series: bookingData.client_passport_series,
+          passport_number: bookingData.client_passport_number,
+          passport_issued_by: bookingData.client_passport_issued_by,
+          passport_issued_date: bookingData.client_passport_issued_date,
+          address: bookingData.client_passport_registration,
+          driver_license_series: bookingData.client_driver_license_series,
+          driver_license_number: bookingData.client_driver_license_number,
+          driver_license_issued_date: bookingData.client_driver_license_issued_date,
+          source: 'booking'
+        })
+      });
+
+      if (!createResponse.ok) {
+        const errorData = await createResponse.json().catch(() => ({}));
+        console.error('Failed to create client:', errorData);
+      } else {
+        const newClient = await createResponse.json();
+        console.log('Client created successfully:', newClient);
       }
     } catch (error) {
       console.error('Error saving client:', error);
@@ -282,10 +305,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       await saveClientIfNotExists();
 
       const response = await fetch(BOOKINGS_API, {
-        method: 'POST',
+        method: bookingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...bookingData,
+          id: bookingId,
           request_type: requestType,
           vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
           vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
@@ -297,6 +321,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Booking save error:', errorData);
         throw new Error(errorData.error || 'Failed to create booking');
       }
 
@@ -306,6 +331,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
         description: 'Заявка успешно оформлена',
       });
       
+      setBookingId(null);
       onOpenChange(false);
       window.location.reload();
     } catch (error: any) {
