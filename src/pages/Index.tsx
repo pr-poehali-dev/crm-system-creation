@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMStore } from '@/lib/store';
 import { useCRMBookings, useCRMVehicles } from '@/hooks/use-crm-data';
+import { API_ENDPOINTS } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ServicesSection from '@/components/ServicesSection';
 import FinanceSection from '@/components/FinanceSection';
@@ -114,7 +115,7 @@ const Index = () => {
 
   const [requests, setRequests] = useState<any[]>([]);
   
-  const { bookings, isLoading: isLoadingBookings } = useCRMBookings();
+  const { bookings, isLoading: isLoadingBookings, load: loadBookings } = useCRMBookings();
 
   const calculatePrice = () => {
     let total = 0;
@@ -602,7 +603,7 @@ const Index = () => {
                         };
                         
                         try {
-                          const response = await fetch(BOOKINGS_API, {
+                          const response = await fetch(API_ENDPOINTS.bookings, {
                             method: 'POST',
                             headers: {
                               'Content-Type': 'application/json',
