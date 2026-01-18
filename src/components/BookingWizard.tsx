@@ -283,7 +283,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   };
 
   const handleSubmit = async () => {
+    console.log('🎯 handleSubmit вызвана');
+    console.log('📝 bookingData:', bookingData);
+    
     if (!bookingData.start_date || !bookingData.end_date) {
+      console.log('❌ Нет дат');
       toast({
         title: 'Ошибка',
         description: 'Укажите дату и время выдачи и возврата',
@@ -293,6 +297,7 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     }
 
     if (!bookingData.client_name || !bookingData.client_phone) {
+      console.log('❌ Нет клиента');
       toast({
         title: 'Ошибка',
         description: 'Заполните данные клиента',
@@ -302,28 +307,38 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     }
 
     try {
+      console.log('💾 Сохраняю клиента...');
       await saveClientIfNotExists();
+
+      const payload = {
+        ...bookingData,
+        id: bookingId,
+        request_type: requestType,
+        vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
+        vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
+        vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
+        total_price: calculateTotal(),
+        status: requestType === 'rent' ? 'Бронь' : 'Услуга',
+      };
+      
+      console.log('🚀 Отправляю заявку:', payload);
 
       const response = await fetch(BOOKINGS_API, {
         method: bookingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...bookingData,
-          id: bookingId,
-          request_type: requestType,
-          vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
-          vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
-          vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
-          total_price: calculateTotal(),
-          status: requestType === 'rent' ? 'Бронь' : 'Услуга',
-        })
+        body: JSON.stringify(payload)
       });
+
+      console.log('📡 Ответ сервера:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Booking save error:', errorData);
+        console.error('❌ Ошибка сохранения:', errorData);
         throw new Error(errorData.error || 'Failed to create booking');
       }
+
+      const result = await response.json();
+      console.log('✅ Заявка сохранена:', result);
 
       const statusText = requestType === 'rent' ? 'Бронь создана' : 'Услуга создана';
       toast({
@@ -333,9 +348,13 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       
       setBookingId(null);
       onOpenChange(false);
-      window.location.reload();
+      
+      console.log('🔄 Перезагружаю страницу...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error: any) {
-      console.error('Booking error:', error);
+      console.error('💥 Ошибка при создании заявки:', error);
       toast({
         title: 'Ошибка',
         description: error.message || 'Не удалось создать бронь',
