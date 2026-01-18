@@ -16,6 +16,7 @@ def get_db_connection():
 
 def handler(event: dict, context) -> dict:
     """API для управления бронированиями"""
+    print(f"Bookings API called: {event.get('httpMethod', 'GET')}")
     method = event.get('httpMethod', 'GET') 
     
     # CORS preflight
@@ -54,6 +55,7 @@ def handler(event: dict, context) -> dict:
 
 def get_bookings(conn, event: dict) -> dict:
     """Получить список бронирований с фильтрацией"""
+    print("Fetching bookings...")
     params = event.get('queryStringParameters', {}) or {}
     booking_id = params.get('id')
     status = params.get('status')

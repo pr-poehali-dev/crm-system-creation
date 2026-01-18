@@ -26,7 +26,15 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
     },
   };
   
-  return fetch(urlWithCache, mergedOptions);
+  try {
+    console.log(`Fetching: ${urlWithCache}`);
+    const response = await fetch(urlWithCache, mergedOptions);
+    console.log(`Response status: ${response.status}`);
+    return response;
+  } catch (error) {
+    console.error(`Fetch error: ${error} for ${urlWithCache}`);
+    throw error;
+  }
 }
 
 export async function loadClients() {

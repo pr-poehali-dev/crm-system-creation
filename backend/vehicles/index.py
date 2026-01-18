@@ -17,6 +17,7 @@ def get_db_connection():
     return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event, context):
+    print(f"Vehicles API called: {event.get('httpMethod', 'GET')}")
     method = event.get('httpMethod', 'GET') 
     
     if method == 'OPTIONS':
@@ -34,7 +35,7 @@ def handler(event, context):
     conn = None
     try:
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
         
         if method == 'GET':
             vehicle_id = event.get('queryStringParameters', {}).get('id')
@@ -60,28 +61,12 @@ def handler(event, context):
                         'isBase64Encoded': False
                     }
                 
-                vehicle = {
-                    'id': row[0], 'branch_id': row[1], 'model': row[2], 'license_plate': row[3],
-                    'vin': row[4], 'year': row[5], 'color': row[6], 'seats': row[7],
-                    'category': row[8], 'status': row[9], 'current_location': row[10],
-                    'insurance_expires': str(row[11]) if row[11] else None,
-                    'tech_inspection_expires': str(row[12]) if row[12] else None,
-                    'osago_number': row[13], 'kasko_number': row[14],
-                    'last_service_date': str(row[15]) if row[15] else None,
-                    'next_service_date': str(row[16]) if row[16] else None,
-                    'last_service_km': row[17], 'next_service_km': row[18], 'current_km': row[19],
-                    'purchase_price': float(row[20]) if row[20] else None,
-                    'rental_price_per_day': float(row[21]) if row[21] else None,
-                    'rental_price_per_km': float(row[22]) if row[22] else None,
-                    'sublease_cost': float(row[23]) if row[23] else 0.0,
-                    'notes': row[24], 'is_active': row[25],
-                    'created_at': str(row[26]), 'updated_at': str(row[27]) if row[27] else None
-                }
+                vehicle = dict(row)
                 
                 return {
                     'statusCode': 200,
                     'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-                    'body': json.dumps(vehicle),
+                    'body': json.dumps(vehicle, default=str),
                     'isBase64Encoded': False
                 }
             
@@ -94,21 +79,12 @@ def handler(event, context):
                 ''')
                 rows = cur.fetchall()
                 
-                vehicles = []
-                for row in rows:
-                    vehicles.append({
-                        'id': row[0],
-                        'model': row[1],
-                        'license_plate': row[2],
-                        'status': row[3],
-                        'current_location': row[4],
-                        'next_service_date': str(row[5]) if row[5] else None
-                    })
+                vehicles = [dict(row) for row in rows]
                 
                 return {
                     'statusCode': 200,
                     'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-                    'body': json.dumps({'vehicles': vehicles, 'total': len(vehicles)}),
+                    'body': json.dumps({'vehicles': vehicles, 'total': len(vehicles)}, default=str),
                     'isBase64Encoded': False
                 }
         
@@ -248,28 +224,12 @@ def handler(event, context):
                 ''', (vehicle_id,))
                 
                 rows = cur.fetchall()
-                history = []
-                for row in rows:
-                    history.append({
-                        'id': row[0],
-                        'handover_id': row[1],
-                        'type': row[2],
-                        'handover_date': str(row[3]),
-                        'handover_time': str(row[4]),
-                        'odometer': row[5],
-                        'fuel_level': row[6],
-                        'deposit_amount': float(row[7]) if row[7] else 0,
-                        'rental_amount': float(row[8]) if row[8] else 0,
-                        'rental_payment_method': row[9],
-                        'transponder_number': row[10],
-                        'notes': row[11],
-                        'created_at': str(row[12])
-                    })
+                history = [dict(row) for row in rows]
                 
                 return {
                     'statusCode': 200,
                     'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-                    'body': json.dumps({'handovers': history, 'total': len(history)}),
+                    'body': json.dumps({'handovers': history, 'total': len(history)}, default=str),
                     'isBase64Encoded': False
                 }
             
@@ -347,6 +307,9 @@ def handler(event, context):
             }
     
     except Exception as e:
+        import traceback
+        print(f"ERROR: {str(e)}")
+        print(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
