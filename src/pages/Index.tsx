@@ -143,15 +143,13 @@ const Index = () => {
   const loadBookings = async () => {
     try {
       const response = await fetch(BOOKINGS_API);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
       const data = await response.json();
       setBookings(data.bookings || []);
     } catch (error) {
       console.error('Error loading bookings:', error);
-      toast({
-        title: "Ошибка загрузки",
-        description: "Не удалось загрузить бронирования",
-        variant: "destructive",
-      });
     } finally {
       setIsLoadingBookings(false);
     }
@@ -161,15 +159,13 @@ const Index = () => {
     const loadFleet = async () => {
       try {
         const response = await fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         setFleet(data.vehicles || []);
       } catch (error) {
         console.error('Error loading fleet:', error);
-        toast({
-          title: "Ошибка загрузки",
-          description: "Не удалось загрузить автопарк",
-          variant: "destructive",
-        });
       } finally {
         setIsLoadingFleet(false);
       }

@@ -6,7 +6,15 @@ API для управления автопарком
 import json
 import os
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
+
+SCHEMA = 't_p81623955_crm_system_creation'
+
+def get_db_connection():
+    """Создает подключение к базе данных"""
+    dsn = os.environ.get('DATABASE_URL')
+    return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event, context):
     method = event.get('httpMethod', 'GET')
@@ -23,12 +31,9 @@ def handler(event, context):
             'isBase64Encoded': False
         }
     
+    conn = None
     try:
-        dsn = os.environ.get('DATABASE_URL')
-        if not dsn:
-            raise Exception('DATABASE_URL not configured')
-        
-        conn = psycopg2.connect(dsn)
+        conn = get_db_connection()
         cur = conn.cursor()
         
         if method == 'GET':
@@ -42,7 +47,7 @@ def handler(event, context):
                            last_service_km, next_service_km, current_km, purchase_price,
                            rental_price_per_day, rental_price_per_km, sublease_cost, notes, is_active,
                            created_at, updated_at
-                    FROM t_p81623955_crm_system_creation.fleet
+                    FROM fleet
                     WHERE id = %s
                 ''', (vehicle_id,))
                 row = cur.fetchone()
@@ -83,7 +88,7 @@ def handler(event, context):
             else:
                 cur.execute('''
                     SELECT id, model, license_plate, status, current_location, next_service_date
-                    FROM t_p81623955_crm_system_creation.fleet
+                    FROM fleet
                     WHERE is_active = true
                     ORDER BY model, license_plate
                 ''')
@@ -152,7 +157,7 @@ def handler(event, context):
             params.append(vehicle_id)
             
             query = f'''
-                UPDATE t_p81623955_crm_system_creation.fleet
+                UPDATE fleet
                 SET {', '.join(update_fields)}
                 WHERE id = %s
                 RETURNING id
@@ -185,7 +190,7 @@ def handler(event, context):
             
             if action == 'handover':
                 cur.execute('''
-                    INSERT INTO t_p81623955_crm_system_creation.vehicle_handovers (
+                    INSERT INTO vehicle_handovers (
                         handover_id, vehicle_id, booking_id, type, handover_date, handover_time,
                         odometer, fuel_level, transponder_needed, transponder_number,
                         deposit_amount, rental_amount, rental_payment_method, rental_receipt_url,
@@ -237,7 +242,7 @@ def handler(event, context):
                     SELECT id, handover_id, type, handover_date, handover_time,
                            odometer, fuel_level, deposit_amount, rental_amount,
                            rental_payment_method, transponder_number, notes, created_at
-                    FROM t_p81623955_crm_system_creation.vehicle_handovers
+                    FROM vehicle_handovers
                     WHERE vehicle_id = %s
                     ORDER BY handover_date DESC, handover_time DESC
                 ''', (vehicle_id,))
@@ -269,7 +274,7 @@ def handler(event, context):
                 }
             
             cur.execute('''
-                INSERT INTO t_p81623955_crm_system_creation.fleet (
+                INSERT INTO fleet (
                     branch_id, model, license_plate, vin, year, color, seats, category,
                     status, current_location, insurance_expires, tech_inspection_expires,
                     osago_number, kasko_number, last_service_date, next_service_date,
@@ -311,7 +316,7 @@ def handler(event, context):
                 }
             
             cur.execute('''
-                UPDATE t_p81623955_crm_system_creation.fleet
+                UPDATE fleet
                 SET model = %s, license_plate = %s, status = %s, current_location = %s,
                     current_km = %s, rental_price_per_day = %s, rental_price_per_km = %s,
                     sublease_cost = %s, notes = %s, updated_at = %s
@@ -348,9 +353,6 @@ def handler(event, context):
             'body': json.dumps({'error': str(e)}),
             'isBase64Encoded': False
         }
-    
     finally:
-        if 'cur' in locals():
-            cur.close()
-        if 'conn' in locals():
+        if conn:
             conn.close()
