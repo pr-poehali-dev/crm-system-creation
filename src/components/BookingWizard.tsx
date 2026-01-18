@@ -17,12 +17,13 @@ interface BookingWizardProps {
   vehicle?: any;
   startDate?: Date;
   endDate?: Date;
+  onBookingCreated?: () => void;
 }
 
 const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
 const CLIENTS_API = 'https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57';
 
-export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate }: BookingWizardProps) => {
+export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate, onBookingCreated }: BookingWizardProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [bookingId, setBookingId] = useState<number | null>(null);
@@ -349,10 +350,10 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       setBookingId(null);
       onOpenChange(false);
       
-      console.log('🔄 Перезагружаю страницу...');
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      console.log('🔄 Обновляю список заявок...');
+      if (onBookingCreated) {
+        onBookingCreated();
+      }
     } catch (error: any) {
       console.error('💥 Ошибка при создании заявки:', error);
       toast({

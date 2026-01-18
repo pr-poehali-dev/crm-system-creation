@@ -55,30 +55,31 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
   const [isLoading, setIsLoading] = useState(true);
   const [fleet, setFleet] = useState<string[]>([]);
 
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [bookingsResponse, vehiclesResponse] = await Promise.all([
+        fetch(BOOKINGS_API),
+        fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f')
+      ]);
+      
+      const bookingsData = await bookingsResponse.json();
+      const vehiclesData = await vehiclesResponse.json();
+      
+      setBookings(bookingsData.bookings || []);
+      
+      const vehicleNames = (vehiclesData.vehicles || []).map((v: any) => 
+        `${v.model} #${v.license_plate.slice(-3)}`
+      );
+      setFleet(vehicleNames.length > 0 ? vehicleNames : ['Honda Stepwgn #763']);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [bookingsResponse, vehiclesResponse] = await Promise.all([
-          fetch(BOOKINGS_API),
-          fetch('https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f')
-        ]);
-        
-        const bookingsData = await bookingsResponse.json();
-        const vehiclesData = await vehiclesResponse.json();
-        
-        setBookings(bookingsData.bookings || []);
-        
-        const vehicleNames = (vehiclesData.vehicles || []).map((v: any) => 
-          `${v.model} #${v.license_plate.slice(-3)}`
-        );
-        setFleet(vehicleNames.length > 0 ? vehicleNames : ['Honda Stepwgn #763']);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     loadData();
   }, [currentDate]);
 
@@ -187,12 +188,23 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
                 <span>Календарь</span>
               </div>
             </div>
-            <Button 
-              className="bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14"
-              onClick={() => onOpenBookingWizard?.()}
-            >
-              <Icon name="Plus" size={24} />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => loadData()}
+                disabled={isLoading}
+              >
+                <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={cn("mr-2", isLoading && "animate-spin")} />
+                Обновить
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14"
+                onClick={() => onOpenBookingWizard?.()}
+              >
+                <Icon name="Plus" size={24} />
+              </Button>
+            </div>
           </div>
         </CardHeader>
 

@@ -932,14 +932,25 @@ const Index = () => {
                       <Icon name="ClipboardList" size={24} className="text-primary" />
                       Управление заявками
                     </CardTitle>
-                    <Tabs defaultValue="all" className="w-auto">
-                      <TabsList>
-                        <TabsTrigger value="all">Все</TabsTrigger>
-                        <TabsTrigger value="new">Новые</TabsTrigger>
-                        <TabsTrigger value="progress">В работе</TabsTrigger>
-                        <TabsTrigger value="completed">Завершённые</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadBookings()}
+                        disabled={isLoadingBookings}
+                      >
+                        <Icon name={isLoadingBookings ? "Loader2" : "RefreshCw"} size={16} className={cn("mr-2", isLoadingBookings && "animate-spin")} />
+                        Обновить
+                      </Button>
+                      <Tabs defaultValue="all" className="w-auto">
+                        <TabsList>
+                          <TabsTrigger value="all">Все</TabsTrigger>
+                          <TabsTrigger value="new">Новые</TabsTrigger>
+                          <TabsTrigger value="progress">В работе</TabsTrigger>
+                          <TabsTrigger value="completed">Завершённые</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Input placeholder="Поиск по клиенту, услуге или авто..." className="flex-1" />
@@ -1456,6 +1467,7 @@ const Index = () => {
         vehicle={selectedVehicle}
         startDate={newRequest.startDate}
         endDate={newRequest.endDate}
+        onBookingCreated={loadBookings}
       />
 
       <LeadDetailForm
