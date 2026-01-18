@@ -19,7 +19,9 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
   
   const mergedOptions: RequestInit = {
     ...options,
+    mode: 'cors',
     cache: 'no-store',
+    credentials: 'omit',
     headers: {
       ...defaultHeaders,
       ...options.headers,
@@ -30,9 +32,19 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
     console.log(`Fetching: ${urlWithCache}`);
     const response = await fetch(urlWithCache, mergedOptions);
     console.log(`Response status: ${response.status}`);
+    
+    if (!response.ok) {
+      console.error(`HTTP Error ${response.status} for ${urlWithCache}`);
+    }
+    
     return response;
   } catch (error) {
     console.error(`Fetch error: ${error} for ${urlWithCache}`);
+    console.error(`Error details:`, {
+      url: urlWithCache,
+      options: mergedOptions,
+      error: error instanceof Error ? error.message : String(error)
+    });
     throw error;
   }
 }
