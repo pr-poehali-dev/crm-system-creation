@@ -38,9 +38,14 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
     has_additional_driver: false,
     child_seat_count: 0,
     planned_km_total: 0,
+    rental_days: 1,
+    rental_price_per_day: 0,
+    rental_price_per_km: 0,
     services: [],
     payments: [],
     deposit_amount: 0,
+    start_date: '',
+    end_date: '',
   });
 
   // Загрузка автомобилей
@@ -77,13 +82,13 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
 
   // Автосохранение при каждом изменении bookingData
   useEffect(() => {
-    // Для услуг не требуется машина
+    if (!bookingData.client_name || !bookingData.start_date) return;
     if (requestType === 'rent' && !selectedVehicle) return;
     
     const saveBooking = async () => {
       try {
         setSaveStatus('saving');
-        await fetch(BOOKINGS_API, {
+        const response = await fetch(BOOKINGS_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -92,14 +97,17 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
             vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
             vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
             vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
-            start_date: startDate?.toISOString(),
-            end_date: endDate?.toISOString(),
             total_price: calculateTotal(),
             status: 'Черновик',
           })
         });
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+        
+        if (response.ok) {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        } else {
+          setSaveStatus('error');
+        }
       } catch (error) {
         console.error('Ошибка автосохранения:', error);
         setSaveStatus('error');
@@ -252,6 +260,24 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
   };
 
   const handleSubmit = async () => {
+    if (!bookingData.start_date || !bookingData.end_date) {
+      toast({
+        title: 'Ошибка',
+        description: 'Укажите дату и время выдачи и возврата',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!bookingData.client_name || !bookingData.client_phone) {
+      toast({
+        title: 'Ошибка',
+        description: 'Заполните данные клиента',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await saveClientIfNotExists();
 
@@ -264,14 +290,15 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
           vehicle_id: selectedVehicle?.id || bookingData.vehicle_id,
           vehicle_model: selectedVehicle?.model || bookingData.vehicle_model,
           vehicle_license_plate: selectedVehicle?.license_plate || bookingData.vehicle_license_plate,
-          start_date: startDate?.toISOString(),
-          end_date: endDate?.toISOString(),
           total_price: calculateTotal(),
           status: requestType === 'rent' ? 'Бронь' : 'Услуга',
         })
       });
 
-      if (!response.ok) throw new Error('Failed to create booking');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create booking');
+      }
 
       const statusText = requestType === 'rent' ? 'Бронь создана' : 'Услуга создана';
       toast({
@@ -281,10 +308,11 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
       
       onOpenChange(false);
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Booking error:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось создать бронь',
+        description: error.message || 'Не удалось создать бронь',
         variant: 'destructive',
       });
     }
@@ -309,9 +337,10 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 {saveStatus === 'saved' && <span className="text-xs text-green-500">✓ Сохранено</span>}
                 {saveStatus === 'error' && <span className="text-xs text-red-500">⚠ Ошибка</span>}
               </div>
-              {startDate && endDate && requestType === 'rent' && (
+              {bookingData.start_date && bookingData.end_date && requestType === 'rent' && (
                 <div className="text-sm text-muted-foreground mt-1">
-                  Период: {startDate.toLocaleDateString()} ~ {endDate.toLocaleDateString()}
+                  Период: {new Date(bookingData.start_date).toLocaleDateString('ru-RU')} ~ {new Date(bookingData.end_date).toLocaleDateString('ru-RU')}
+                  {bookingData.rental_days > 0 && ` (${bookingData.rental_days} ${bookingData.rental_days === 1 ? 'день' : bookingData.rental_days < 5 ? 'дня' : 'дней'})`}
                 </div>
               )}
             </div>
@@ -409,6 +438,44 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>
+                    <Icon name="Calendar" size={16} className="inline mr-2" />
+                    Дата и время выдачи *
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    value={bookingData.start_date || ''}
+                    onChange={(e) => {
+                      updateData('start_date', e.target.value);
+                      if (bookingData.end_date && bookingData.rental_price_per_day) {
+                        const days = Math.ceil((new Date(bookingData.end_date).getTime() - new Date(e.target.value).getTime()) / (1000 * 60 * 60 * 24));
+                        updateData('rental_days', Math.max(1, days));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    <Icon name="Calendar" size={16} className="inline mr-2" />
+                    Дата и время возврата *
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    value={bookingData.end_date || ''}
+                    onChange={(e) => {
+                      updateData('end_date', e.target.value);
+                      if (bookingData.start_date && bookingData.rental_price_per_day) {
+                        const days = Math.ceil((new Date(e.target.value).getTime() - new Date(bookingData.start_date).getTime()) / (1000 * 60 * 60 * 24));
+                        updateData('rental_days', Math.max(1, days));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -514,30 +581,71 @@ export const BookingWizard = ({ open, onOpenChange, vehicle, startDate, endDate 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="planned_km">
-                    <Icon name="Gauge" size={16} className="inline mr-2" />
-                    Пробег поездки, км *
+                  <Label>
+                    <Icon name="Banknote" size={16} className="inline mr-2" />
+                    Цена за сутки, ₽ *
                   </Label>
                   <Input
-                    id="planned_km"
                     type="number"
-                    value={bookingData.planned_km_total}
-                    onChange={(e) => updateData('planned_km_total', parseInt(e.target.value) || 0)}
+                    value={bookingData.rental_price_per_day || ''}
+                    onChange={(e) => updateData('rental_price_per_day', parseFloat(e.target.value) || 0)}
+                    placeholder="3000"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Коротко опишите маршрут *</Label>
-                  <Textarea
-                    value={bookingData.notes}
-                    onChange={(e) => updateData('notes', e.target.value)}
-                    placeholder="Москва - Сочи - Москва"
-                    rows={1}
+                  <Label>
+                    <Icon name="Gauge" size={16} className="inline mr-2" />
+                    Пробег поездки, км *
+                  </Label>
+                  <Input
+                    type="number"
+                    value={bookingData.planned_km_total || ''}
+                    onChange={(e) => updateData('planned_km_total', parseInt(e.target.value) || 0)}
+                    placeholder="1000"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    <Icon name="Gauge" size={16} className="inline mr-2" />
+                    Цена за км, ₽
+                  </Label>
+                  <Input
+                    type="number"
+                    value={bookingData.rental_price_per_km || ''}
+                    onChange={(e) => updateData('rental_price_per_km', parseFloat(e.target.value) || 0)}
+                    placeholder="0"
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label>Коротко опишите маршрут *</Label>
+                <Textarea
+                  value={bookingData.notes}
+                  onChange={(e) => updateData('notes', e.target.value)}
+                  placeholder="Москва - Сочи - Москва"
+                  rows={2}
+                />
+              </div>
+
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between text-lg font-semibold">
+                    <span>Итоговая стоимость:</span>
+                    <span className="text-2xl text-primary">{calculateTotal().toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  {bookingData.rental_days > 0 && (
+                    <div className="text-sm text-muted-foreground mt-2">
+                      {bookingData.rental_days} {bookingData.rental_days === 1 ? 'день' : bookingData.rental_days < 5 ? 'дня' : 'дней'} × {bookingData.rental_price_per_day?.toLocaleString('ru-RU')} ₽
+                      {bookingData.rental_price_per_km > 0 && ` + ${bookingData.planned_km_total} км × ${bookingData.rental_price_per_km} ₽`}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               <div className="space-y-3">
                 <Label>Дополнительные опции</Label>
