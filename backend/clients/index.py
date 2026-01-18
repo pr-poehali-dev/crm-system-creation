@@ -2,7 +2,15 @@
 import json
 import os
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
+
+SCHEMA = 't_p81623955_crm_system_creation'
+
+def get_db_connection():
+    """Создает подключение к базе данных"""
+    dsn = os.environ.get('DATABASE_URL')
+    return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event: dict, context) -> dict:
     method = event.get('httpMethod', 'GET')
@@ -16,14 +24,13 @@ def handler(event: dict, context) -> dict:
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Auth-Token'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
+    conn = None
     try:
-        # Подключение к БД
-        dsn = os.environ.get('DATABASE_URL')
-        conn = psycopg2.connect(dsn)
-        conn.autocommit = True
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # GET - получить всех клиентов
@@ -34,42 +41,43 @@ def handler(event: dict, context) -> dict:
                        source, is_blacklist, notes, created_at, birth_date,
                        passport_series, passport_number, passport_issued_by, passport_issued_date,
                        address, driver_license_series, driver_license_number, driver_license_issued_date
-                FROM t_p81623955_crm_system_creation.clients
+                FROM clients
+                WHERE (created_at IS NULL OR EXTRACT(YEAR FROM created_at) < 2100)
+                  AND (birth_date IS NULL OR EXTRACT(YEAR FROM birth_date) < 2100)
+                  AND (passport_issued_date IS NULL OR EXTRACT(YEAR FROM passport_issued_date) < 2100)
+                  AND (driver_license_issued_date IS NULL OR EXTRACT(YEAR FROM driver_license_issued_date) < 2100)
                 ORDER BY created_at DESC
             """)
             
             clients = []
             for row in cursor.fetchall():
                 clients.append({
-                    'id': row[0],
-                    'name': row[1],
-                    'phone': row[2],
-                    'email': row[3],
-                    'company': row[4],
-                    'telegram': row[5],
-                    'whatsapp': row[6],
-                    'city': row[7],
-                    'balance': float(row[8]) if row[8] else 0,
-                    'total_spent': float(row[9]) if row[9] else 0,
-                    'orders_count': row[10] or 0,
-                    'rating': float(row[11]) if row[11] else 5.0,
-                    'source': row[12],
-                    'is_blacklist': row[13] or False,
-                    'notes': row[14],
-                    'created_at': row[15].isoformat() if row[15] else None,
-                    'birth_date': row[16].isoformat() if row[16] else None,
-                    'passport_series': row[17],
-                    'passport_number': row[18],
-                    'passport_issued_by': row[19],
-                    'passport_issued_date': row[20].isoformat() if row[20] else None,
-                    'address': row[21],
-                    'driver_license_series': row[22],
-                    'driver_license_number': row[23],
-                    'driver_license_issued_date': row[24].isoformat() if row[24] else None
+                    'id': row['id'],
+                    'name': row['name'],
+                    'phone': row['phone'],
+                    'email': row['email'],
+                    'company': row['company'],
+                    'telegram': row['telegram'],
+                    'whatsapp': row['whatsapp'],
+                    'city': row['city'],
+                    'balance': float(row['balance']) if row['balance'] else 0,
+                    'total_spent': float(row['total_spent']) if row['total_spent'] else 0,
+                    'orders_count': row['orders_count'] or 0,
+                    'rating': float(row['rating']) if row['rating'] else 5.0,
+                    'source': row['source'],
+                    'is_blacklist': row['is_blacklist'] or False,
+                    'notes': row['notes'],
+                    'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                    'birth_date': row['birth_date'].isoformat() if row['birth_date'] else None,
+                    'passport_series': row['passport_series'],
+                    'passport_number': row['passport_number'],
+                    'passport_issued_by': row['passport_issued_by'],
+                    'passport_issued_date': row['passport_issued_date'].isoformat() if row['passport_issued_date'] else None,
+                    'address': row['address'],
+                    'driver_license_series': row['driver_license_series'],
+                    'driver_license_number': row['driver_license_number'],
+                    'driver_license_issued_date': row['driver_license_issued_date'].isoformat() if row['driver_license_issued_date'] else None
                 })
-            
-            cursor.close()
-            conn.close()
             
             return {
                 'statusCode': 200,
@@ -77,7 +85,8 @@ def handler(event: dict, context) -> dict:
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({'clients': clients})
+                'body': json.dumps({'clients': clients}),
+                'isBase64Encoded': False
             }
         
         # POST - создать нового клиента
@@ -85,7 +94,7 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get('body', '{}'))
             
             cursor.execute("""
-                INSERT INTO t_p81623955_crm_system_creation.clients 
+                INSERT INTO clients 
                 (name, phone, email, company, telegram, whatsapp, city, notes, source, birth_date,
                  passport_series, passport_number, passport_issued_by, passport_issued_date,
                  address, driver_license_series, driver_license_number, driver_license_issued_date)
@@ -113,23 +122,21 @@ def handler(event: dict, context) -> dict:
                 body.get('driver_license_issued_date')
             ))
             
+            conn.commit()
             row = cursor.fetchone()
             new_client = {
-                'id': row[0],
-                'name': row[1],
-                'phone': row[2],
-                'email': row[3],
-                'company': row[4],
-                'telegram': row[5],
-                'whatsapp': row[6],
-                'city': row[7],
-                'balance': float(row[8]) if row[8] else 0,
-                'created_at': row[9].isoformat() if row[9] else None,
-                'birth_date': row[10].isoformat() if row[10] else None
+                'id': row['id'],
+                'name': row['name'],
+                'phone': row['phone'],
+                'email': row['email'],
+                'company': row['company'],
+                'telegram': row['telegram'],
+                'whatsapp': row['whatsapp'],
+                'city': row['city'],
+                'balance': float(row['balance']) if row['balance'] else 0,
+                'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                'birth_date': row['birth_date'].isoformat() if row['birth_date'] else None
             }
-            
-            cursor.close()
-            conn.close()
             
             return {
                 'statusCode': 201,
@@ -137,7 +144,8 @@ def handler(event: dict, context) -> dict:
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({'client': new_client})
+                'body': json.dumps({'client': new_client}),
+                'isBase64Encoded': False
             }
         
         # PUT - обновить клиента
@@ -146,7 +154,7 @@ def handler(event: dict, context) -> dict:
             client_id = body.get('id')
             
             cursor.execute("""
-                UPDATE t_p81623955_crm_system_creation.clients
+                UPDATE clients
                 SET name = %s, phone = %s, email = %s, company = %s,
                     telegram = %s, whatsapp = %s, city = %s, notes = %s,
                     is_blacklist = %s, birth_date = %s,
@@ -178,33 +186,30 @@ def handler(event: dict, context) -> dict:
                 client_id
             ))
             
+            conn.commit()
             row = cursor.fetchone()
             if not row:
-                cursor.close()
-                conn.close()
                 return {
                     'statusCode': 404,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Client not found'})
+                    'body': json.dumps({'error': 'Client not found'}),
+                    'isBase64Encoded': False
                 }
             
             updated_client = {
-                'id': row[0],
-                'name': row[1],
-                'phone': row[2],
-                'email': row[3],
-                'company': row[4],
-                'telegram': row[5],
-                'whatsapp': row[6],
-                'city': row[7],
-                'balance': float(row[8]) if row[8] else 0,
-                'is_blacklist': row[9],
-                'updated_at': row[10].isoformat() if row[10] else None,
-                'birth_date': row[11].isoformat() if row[11] else None
+                'id': row['id'],
+                'name': row['name'],
+                'phone': row['phone'],
+                'email': row['email'],
+                'company': row['company'],
+                'telegram': row['telegram'],
+                'whatsapp': row['whatsapp'],
+                'city': row['city'],
+                'balance': float(row['balance']) if row['balance'] else 0,
+                'is_blacklist': row['is_blacklist'],
+                'updated_at': row['updated_at'].isoformat() if row['updated_at'] else None,
+                'birth_date': row['birth_date'].isoformat() if row['birth_date'] else None
             }
-            
-            cursor.close()
-            conn.close()
             
             return {
                 'statusCode': 200,
@@ -212,7 +217,8 @@ def handler(event: dict, context) -> dict:
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({'client': updated_client})
+                'body': json.dumps({'client': updated_client}),
+                'isBase64Encoded': False
             }
         
         # DELETE - удалить клиента
@@ -221,8 +227,6 @@ def handler(event: dict, context) -> dict:
             client_id = query_params.get('id')
             
             if not client_id:
-                cursor.close()
-                conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -231,15 +235,14 @@ def handler(event: dict, context) -> dict:
                 }
             
             cursor.execute("""
-                DELETE FROM t_p81623955_crm_system_creation.clients
+                DELETE FROM clients
                 WHERE id = %s
                 RETURNING id, name
             """, (client_id,))
             
+            conn.commit()
             row = cursor.fetchone()
             if not row:
-                cursor.close()
-                conn.close()
                 return {
                     'statusCode': 404,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -247,16 +250,13 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
-            cursor.close()
-            conn.close()
-            
             return {
                 'statusCode': 200,
                 'headers': {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({'message': f'Client {row[1]} deleted successfully'}),
+                'body': json.dumps({'message': f'Client {row["name"]} deleted successfully'}),
                 'isBase64Encoded': False
             }
         
@@ -264,19 +264,20 @@ def handler(event: dict, context) -> dict:
             return {
                 'statusCode': 405,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Method not allowed'})
+                'body': json.dumps({'error': 'Method not allowed'}),
+                'isBase64Encoded': False
             }
             
     except Exception as e:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close()
         return {
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
         }
+    finally:
+        if conn:
+            conn.close()

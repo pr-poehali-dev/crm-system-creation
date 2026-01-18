@@ -15,6 +15,16 @@
       "path": "/?action=google_sync",
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Import MyRadius calendar",
+      "method": "GET",
+      "path": "/?action=myradius_import",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
