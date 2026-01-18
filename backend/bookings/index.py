@@ -254,23 +254,35 @@ def create_booking(conn, event: dict) -> dict:
     booking_id = cursor.fetchone()['id']
     conn.commit()
     
+    # Получаем полную информацию о созданной брони
+    cursor.execute("""
+        SELECT b.*, 
+               f.model as vehicle_model_full,
+               f.license_plate as vehicle_plate_full
+        FROM bookings b
+        LEFT JOIN fleet f ON b.vehicle_id = f.id
+        WHERE b.id = %s
+    """, (booking_id,))
+    booking = cursor.fetchone()
+    
     return success_response({
-        'id': booking_id,
+        'booking': dict(booking) if booking else {'id': booking_id},
         'message': 'Booking created successfully'
     }, status_code=201)
 
 def update_booking(conn, event: dict) -> dict:
     """Обновить бронирование"""
-    params = event.get('queryStringParameters', {}) or {}
-    booking_id = params.get('id')
-    
-    if not booking_id:
-        return error_response(400, 'Missing booking id')
-    
     try:
         data = json.loads(event.get('body', '{}'))
     except json.JSONDecodeError:
         return error_response(400, 'Invalid JSON')
+    
+    # ID может быть в query params или в body
+    params = event.get('queryStringParameters', {}) or {}
+    booking_id = params.get('id') or data.get('id')
+    
+    if not booking_id:
+        return error_response(400, 'Missing booking id')
     
     cursor = conn.cursor()
     
@@ -312,7 +324,21 @@ def update_booking(conn, event: dict) -> dict:
     cursor.execute(query, values)
     conn.commit()
     
-    return success_response({'message': 'Booking updated successfully'})
+    # Получаем обновлённую бронь
+    cursor.execute("""
+        SELECT b.*, 
+               f.model as vehicle_model_full,
+               f.license_plate as vehicle_plate_full
+        FROM bookings b
+        LEFT JOIN fleet f ON b.vehicle_id = f.id
+        WHERE b.id = %s
+    """, (booking_id,))
+    booking = cursor.fetchone()
+    
+    return success_response({
+        'booking': dict(booking) if booking else {'id': booking_id},
+        'message': 'Booking updated successfully'
+    })
 
 def delete_booking(conn, event: dict) -> dict:
     """Удалить бронирование (мягкое удаление - меняем статус)"""
