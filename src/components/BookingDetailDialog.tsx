@@ -16,6 +16,7 @@ interface BookingDetailDialogProps {
 }
 
 const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
+const INTEGRATIONS_API = 'https://functions.poehali.dev/d6ed6f95-4807-4fc5-bd93-5e841b317394';
 
 export const BookingDetailDialog = ({ 
   open, 
@@ -25,6 +26,7 @@ export const BookingDetailDialog = ({
 }: BookingDetailDialogProps) => {
   const [fullBooking, setFullBooking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
   useEffect(() => {
     if (!open || !booking?.id) {
@@ -47,6 +49,42 @@ export const BookingDetailDialog = ({
 
     loadBookingDetails();
   }, [open, booking?.id]);
+
+  const handleCreatePayment = async () => {
+    if (!fullBooking) return;
+    
+    const remaining = parseFloat(fullBooking.total_price || 0) - parseFloat(fullBooking.paid_amount || 0);
+    if (remaining <= 0) {
+      alert('Бронь уже полностью оплачена');
+      return;
+    }
+
+    setIsCreatingPayment(true);
+    try {
+      const response = await fetch(`${INTEGRATIONS_API}?action=payment_create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_id: fullBooking.id,
+          amount: remaining,
+          return_url: window.location.origin + '/payment-success'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.confirmation_url) {
+        window.open(data.confirmation_url, '_blank');
+        alert('Ссылка на оплату открыта в новой вкладке');
+      } else {
+        alert(`Ошибка: ${data.error || 'Не удалось создать платёж'}`);
+      }
+    } catch (error) {
+      alert('Не удалось создать ссылку на оплату');
+    } finally {
+      setIsCreatingPayment(false);
+    }
+  };
 
   if (!booking) return null;
 
@@ -261,10 +299,21 @@ export const BookingDetailDialog = ({
                   </div>
                 )}
 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t space-y-3">
                   <div className="text-sm text-muted-foreground">
                     Баланс платежей: <span className="font-medium text-foreground">₽{balance.toLocaleString()}</span>
                   </div>
+                  
+                  {balance < 0 && (
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                      onClick={handleCreatePayment}
+                      disabled={isCreatingPayment}
+                    >
+                      <Icon name={isCreatingPayment ? "Loader2" : "CreditCard"} size={18} className={`mr-2 ${isCreatingPayment && 'animate-spin'}`} />
+                      {isCreatingPayment ? 'Создание ссылки...' : `Создать ссылку на оплату ₽${Math.abs(balance).toLocaleString()}`}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

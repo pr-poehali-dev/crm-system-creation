@@ -1,7 +1,7 @@
 {
+  "integrations": "https://functions.poehali.dev/d6ed6f95-4807-4fc5-bd93-5e841b317394",
   "partners": "https://functions.poehali.dev/715bfefb-5b6e-4181-b7c3-cf241c6c067f",
   "clients": "https://functions.poehali.dev/c3ce619a-2f5c-4408-845b-21d43e357f57",
   "bookings": "https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142",
-  "vehicles-admin": "https://functions.poehali.dev/c1620ea4-c9a8-4c0e-bb5b-5820d4042dfa",
   "vehicles": "https://functions.poehali.dev/31c1f036-1400-4618-bf9f-592d93e0f06f"
 }

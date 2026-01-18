@@ -40,6 +40,7 @@ interface Booking {
 }
 
 const BOOKINGS_API = 'https://functions.poehali.dev/239ae645-08a8-4dd7-a943-a99a7b5e2142';
+const INTEGRATIONS_API = 'https://functions.poehali.dev/d6ed6f95-4807-4fc5-bd93-5e841b317394';
 
 interface CalendarSectionProps {
   onOpenBookingWizard?: () => void;
@@ -54,6 +55,7 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fleet, setFleet] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -82,6 +84,26 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
   useEffect(() => {
     loadData();
   }, [currentDate]);
+
+  const handleExportCalendar = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch(`${INTEGRATIONS_API}?action=export_ics`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bookings.ics';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -197,6 +219,15 @@ export const CalendarSection = ({ onOpenBookingWizard }: CalendarSectionProps = 
               >
                 <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={cn("mr-2", isLoading && "animate-spin")} />
                 Обновить
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleExportCalendar}
+                disabled={isExporting}
+              >
+                <Icon name={isExporting ? "Loader2" : "Download"} size={16} className={cn("mr-2", isExporting && "animate-spin")} />
+                Экспорт .ics
               </Button>
               <Button 
                 className="bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14"

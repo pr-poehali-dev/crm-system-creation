@@ -720,10 +720,20 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Icon name="ClipboardList" size={32} className="mx-auto mb-2 opacity-50" />
-                      <p className="text-xs md:text-sm">Заявок пока нет</p>
-                    </div>
+                    {bookings.length === 0 ? (
+                      <div className="text-center py-6 text-muted-foreground">
+                        <Icon name="ClipboardList" size={32} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-xs md:text-sm">Заявок пока нет</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-3xl font-bold text-orange-600">{bookings.length}</div>
+                        <div className="text-sm text-muted-foreground">Всего заявок</div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          Активных: {bookings.filter(b => b.status === 'Бронь' || b.status === 'В аренде').length}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -741,11 +751,28 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">Активных броней нет</div>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Icon name="CalendarOff" size={40} className="mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Создайте новую бронь</p>
-                    </div>
+                    {bookings.filter(b => b.status === 'Бронь').length === 0 ? (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-4">Активных броней нет</div>
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Icon name="CalendarOff" size={40} className="mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Создайте новую бронь</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-3xl font-bold text-blue-600">{bookings.filter(b => b.status === 'Бронь').length}</div>
+                        <div className="text-sm text-muted-foreground mb-4">Активных броней</div>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {bookings.filter(b => b.status === 'Бронь').slice(0, 3).map(b => (
+                            <div key={b.id} className="text-xs p-2 bg-background/50 rounded border border-border/30">
+                              <div className="font-medium">{b.client_name}</div>
+                              <div className="text-muted-foreground">{b.vehicle_model || 'Авто не указано'}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -763,11 +790,28 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">Авто в аренде нет</div>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Icon name="CarOff" size={40} className="mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Все автомобили свободны</p>
-                    </div>
+                    {bookings.filter(b => b.status === 'В аренде').length === 0 ? (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-4">Авто в аренде нет</div>
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Icon name="CarOff" size={40} className="mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Все автомобили свободны</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-3xl font-bold text-green-600">{bookings.filter(b => b.status === 'В аренде').length}</div>
+                        <div className="text-sm text-muted-foreground mb-4">Авто в аренде</div>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {bookings.filter(b => b.status === 'В аренде').slice(0, 3).map(b => (
+                            <div key={b.id} className="text-xs p-2 bg-background/50 rounded border border-border/30">
+                              <div className="font-medium">{b.vehicle_model || 'Авто не указано'}</div>
+                              <div className="text-muted-foreground">{b.client_name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -963,35 +1007,44 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {requests.map((req) => (
+                  {bookings.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="Inbox" size={48} className="mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">Заявок пока нет</p>
+                      <p className="text-xs mt-1">Создайте первую заявку через кнопку "Новая заявка"</p>
+                    </div>
+                  ) : bookings.map((booking) => (
                     <div 
-                      key={req.id} 
-                      onClick={() => setSelectedRequest(req.id)}
+                      key={booking.id} 
+                      onClick={() => {
+                        setSelectedBooking(booking);
+                        setIsBookingDetailOpen(true);
+                      }}
                       className="p-4 rounded-lg bg-sidebar/30 border border-border/50 hover:border-primary/50 transition-all duration-200 cursor-pointer group"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 grid grid-cols-5 gap-4">
                           <div>
                             <div className="text-sm text-muted-foreground">Клиент</div>
-                            <div className="font-medium">{req.client}</div>
+                            <div className="font-medium">{booking.client_name}</div>
                           </div>
                           <div>
-                            <div className="text-sm text-muted-foreground">Услуга</div>
-                            <div className="font-medium">{req.service}</div>
+                            <div className="text-sm text-muted-foreground">Тип</div>
+                            <div className="font-medium">{booking.request_type === 'rent' ? 'Аренда' : 'Услуга'}</div>
                           </div>
                           <div>
                             <div className="text-sm text-muted-foreground">Авто</div>
-                            <div className="font-medium">{req.car}</div>
+                            <div className="font-medium">{booking.vehicle_model || 'Не указано'}</div>
                           </div>
                           <div>
-                            <div className="text-sm text-muted-foreground">Время</div>
-                            <div className="font-medium">{req.time}</div>
+                            <div className="text-sm text-muted-foreground">Даты</div>
+                            <div className="font-medium text-xs">{new Date(booking.start_date).toLocaleDateString('ru-RU')}</div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge className={cn('border', getStatusColor(req.status))}>
-                              {req.status}
+                            <Badge className={cn('border', getStatusColor(booking.status))}>
+                              {booking.status}
                             </Badge>
-                            <span className="text-lg font-bold text-primary">{req.price}</span>
+                            <span className="text-lg font-bold text-primary">₽{booking.total_price?.toLocaleString('ru-RU') || 0}</span>
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">

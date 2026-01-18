@@ -22,10 +22,14 @@ interface Integration {
   config?: any;
 }
 
+const INTEGRATIONS_API = 'https://functions.poehali.dev/d6ed6f95-4807-4fc5-bd93-5e841b317394';
+
 export const IntegrationsPage = () => {
   const { toast } = useToast();
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [avitoAuthLoading, setAvitoAuthLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 'avito',
@@ -76,9 +80,33 @@ export const IntegrationsPage = () => {
       description: 'Синхронизация бронирований с Google Calendar',
       isActive: false,
       config: {
-        api_key: '',
-        calendar_id: '',
+        client_id: '',
+        client_secret: '',
+        refresh_token: '',
       },
+    },
+    {
+      id: 'yukassa',
+      name: 'ЮKassa',
+      type: 'payment',
+      icon: 'CreditCard',
+      color: 'from-purple-500 to-pink-500',
+      description: 'Приём платежей от клиентов онлайн',
+      isActive: false,
+      config: {
+        shop_id: '',
+        secret_key: '',
+      },
+    },
+    {
+      id: 'calendar_export',
+      name: 'Экспорт календаря',
+      type: 'export',
+      icon: 'Download',
+      color: 'from-gray-500 to-gray-600',
+      description: 'Экспорт бронирований в формат .ics для любого календаря',
+      isActive: true,
+      config: {},
     },
     {
       id: 'yandex_direct',
@@ -128,6 +156,69 @@ export const IntegrationsPage = () => {
           [field]: value
         }
       });
+    }
+  };
+
+  const handleGoogleCalendarSync = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch(`${INTEGRATIONS_API}?action=google_sync`);
+      const data = await response.json();
+      
+      if (data.error) {
+        toast({
+          title: "Ошибка синхронизации",
+          description: data.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Синхронизация завершена",
+          description: `Синхронизировано: ${data.synced || 0} броней`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось синхронизировать с Google Calendar",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleExportCalendar = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch(`${INTEGRATIONS_API}?action=export_ics`);
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bookings.ics';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Экспорт завершён",
+        description: "Файл bookings.ics загружен. Импортируйте его в любой календарь",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка экспорта",
+        description: "Не удалось экспортировать календарь",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -237,18 +328,48 @@ export const IntegrationsPage = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">{integration.description}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-4"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedIntegration(integration);
-                    }}
-                  >
-                    <Icon name="Settings" size={16} className="mr-2" />
-                    Настроить
-                  </Button>
+                  {integration.id === 'google_calendar' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGoogleCalendarSync();
+                      }}
+                      disabled={isSyncing}
+                    >
+                      <Icon name={isSyncing ? "Loader2" : "RefreshCw"} size={16} className={`mr-2 ${isSyncing && 'animate-spin'}`} />
+                      {isSyncing ? 'Синхронизация...' : 'Синхронизировать'}
+                    </Button>
+                  ) : integration.id === 'calendar_export' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleExportCalendar();
+                      }}
+                      disabled={isExporting}
+                    >
+                      <Icon name={isExporting ? "Loader2" : "Download"} size={16} className={`mr-2 ${isExporting && 'animate-spin'}`} />
+                      {isExporting ? 'Экспорт...' : 'Скачать .ics'}
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedIntegration(integration);
+                      }}
+                    >
+                      <Icon name="Settings" size={16} className="mr-2" />
+                      Настроить
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
