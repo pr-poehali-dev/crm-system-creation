@@ -30,6 +30,8 @@ import { DashboardCards } from '@/components/index/DashboardCards';
 import { NewRequestDialog } from '@/components/index/NewRequestDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
