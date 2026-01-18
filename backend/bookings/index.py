@@ -7,10 +7,12 @@ from typing import Any, Dict, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+SCHEMA = 't_p81623955_crm_system_creation'
+
 def get_db_connection():
     """Создает подключение к базе данных"""
     dsn = os.environ.get('DATABASE_URL')
-    return psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+    return psycopg2.connect(dsn, cursor_factory=RealDictCursor, options=f'-c search_path={SCHEMA}')
 
 def handler(event: dict, context) -> dict:
     """API для управления бронированиями"""
@@ -29,6 +31,7 @@ def handler(event: dict, context) -> dict:
             'isBase64Encoded': False
         }
     
+    conn = None
     try:
         conn = get_db_connection()
         
@@ -85,6 +88,8 @@ def get_bookings(conn, event: dict) -> dict:
         FROM bookings b
         LEFT JOIN fleet f ON b.vehicle_id = f.id
         WHERE 1=1
+        AND EXTRACT(YEAR FROM b.start_date) < 2100
+        AND EXTRACT(YEAR FROM b.end_date) < 2100
     """
     query_params = []
     
