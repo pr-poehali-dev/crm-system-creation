@@ -220,10 +220,32 @@ def handler(event: dict, context) -> dict:
             query_params = event.get('queryStringParameters', {})
             client_id = query_params.get('id')
             
+            if not client_id:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Missing client id'}),
+                    'isBase64Encoded': False
+                }
+            
             cursor.execute("""
                 DELETE FROM t_p81623955_crm_system_creation.clients
                 WHERE id = %s
+                RETURNING id, name
             """, (client_id,))
+            
+            row = cursor.fetchone()
+            if not row:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Client not found'}),
+                    'isBase64Encoded': False
+                }
             
             cursor.close()
             conn.close()
@@ -234,7 +256,8 @@ def handler(event: dict, context) -> dict:
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({'success': True})
+                'body': json.dumps({'message': f'Client {row[1]} deleted successfully'}),
+                'isBase64Encoded': False
             }
         
         else:
