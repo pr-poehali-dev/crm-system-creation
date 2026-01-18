@@ -24,17 +24,12 @@ import VehicleHandoverHistory from '@/components/VehicleHandoverHistory';
 import BookingWizard from '@/components/BookingWizard';
 import MobileNav from '@/components/MobileNav';
 import DateClickCalendar from '@/components/DateClickCalendar';
-import CacheCleaner from '@/components/CacheCleaner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sidebar } from '@/components/index/Sidebar';
+import { Header } from '@/components/index/Header';
+import { DashboardCards } from '@/components/index/DashboardCards';
+import { NewRequestDialog } from '@/components/index/NewRequestDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
@@ -181,6 +176,71 @@ const Index = () => {
     }
   }, []);
 
+  const handleCreateBooking = async () => {
+    const rentServiceData = selectedServices.find(s => s.id === 'rent');
+    const bookingData = {
+      client_name: newRequest.client,
+      client_phone: newRequest.phone,
+      vehicle_model: newRequest.car,
+      start_date: newRequest.startDate.toISOString(),
+      end_date: newRequest.endDate.toISOString(),
+      status: 'Бронь',
+      total_price: calculatePrice(),
+      paid_amount: 0,
+      deposit_amount: 0,
+      services: selectedServices,
+      rental_days: rentServiceData ? newRequest.days : null,
+      rental_km: rentServiceData ? newRequest.km : null,
+      rental_price_per_day: rentServiceData ? (rentServiceData.adjustedPrice / newRequest.days) : null,
+      rental_price_per_km: rentServiceData ? (services.find(s => s.id === 'rent')?.kmPrice || 0) : null,
+      notes: newRequest.notes,
+      custom_fields: requestCustomFields.filter(f => f.name && f.value),
+      payments: [],
+      created_by: currentUser || 'unknown'
+    };
+    
+    try {
+      const response = await fetch(API_ENDPOINTS.bookings, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create booking');
+      }
+      
+      await loadBookings();
+      setIsDialogOpen(false);
+      toast({
+        title: "Бронь создана",
+        description: `Новая бронь на сумму ₽${calculatePrice().toLocaleString()} успешно создана`,
+      });
+      setRequestCustomFields([]);
+      setSelectedServices([]);
+      setNewRequest({
+        client: '',
+        phone: '',
+        service: '',
+        car: '',
+        startDate: new Date(),
+        endDate: new Date(),
+        notes: '',
+        days: 1,
+        km: 0,
+      });
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать бронь",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!currentUser) {
     return <LoginPage onLogin={handleLogin} />;
   }
@@ -189,41 +249,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-sidebar/30 mobile-container">
-      <aside className="desktop-sidebar fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border md:flex flex-col items-center py-6 space-y-8 z-50 hidden">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-          РФ
-        </div>
-        
-        {[
-          { id: 'dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
-          { id: 'leads', icon: 'Zap', label: 'Лиды' },
-          { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
-          { id: 'requests', icon: 'ClipboardList', label: 'Заявки' },
-          { id: 'clients', icon: 'Users', label: 'Клиенты' },
-          { id: 'partners', icon: 'Handshake', label: 'Партнёры' },
-          { id: 'fleet', icon: 'Car', label: 'Автопарк' },
-          { id: 'services', icon: 'Wrench', label: 'Услуги' },
-          { id: 'finance', icon: 'Wallet', label: 'Финансы' },
-          { id: 'integrations', icon: 'Plug', label: 'Интеграции' },
-          { id: 'settings', icon: 'Settings', label: 'Настройки' },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveSection(item.id)}
-            className={cn(
-              'w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200 group relative',
-              activeSection === item.id
-                ? 'bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/50'
-                : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
-            )}
-          >
-            <Icon name={item.icon as any} size={22} />
-            <span className="absolute left-20 bg-popover text-popover-foreground px-3 py-1.5 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg border border-border">
-              {item.label}
-            </span>
-          </button>
-        ))}
-      </aside>
+      <Sidebar activeSection={activeSection} onNavigate={setActiveSection} />
 
       <MobileNav 
         activeSection={activeSection}
@@ -234,100 +260,39 @@ const Index = () => {
 
       <main className="md:ml-20 mobile-main-content p-3 sm:p-4 md:p-8 pb-24">
         <div className="max-w-[1600px] mx-auto space-y-3 sm:space-y-4 md:space-y-8 animate-fade-in">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                CRM Русская Фантазия
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground mt-1">Управление заявками и автопарком</p>
-            </div>
-            <div className="flex items-center gap-2 md:gap-4 flex-wrap w-full md:w-auto">
-              <Badge variant="outline" className="hidden md:flex px-4 py-2">
-                <Icon name="User" size={16} className="mr-2" />
-                {userData.name} • {userData.role}
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="px-3 md:px-4 py-2 cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => {
-                  setSelectedDate(new Date());
-                  setIsDateCalendarOpen(true);
-                }}
-              >
-                <Icon name="Calendar" size={14} className="mr-1 md:mr-2" />
-                <span className="text-xs md:text-sm">{new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</span>
-              </Badge>
-              <Button variant="outline" className="hidden md:flex" size="sm">
-                <Icon name="Download" size={16} className="mr-2" />
-                Экспорт
-              </Button>
-              <CacheCleaner />
-              <Button variant="outline" onClick={handleLogout} size="sm" className="hidden md:flex">
-                <Icon name="LogOut" size={16} className="mr-2" />
-                Выйти
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 md:flex-none"
-                onClick={() => setIsBookingWizardOpen(true)}
-                size="sm"
-              >
-                <Icon name="Plus" size={16} className="mr-2" />
-                Новая заявка
-              </Button>
-            </div>
-          </div>
+          <Header
+            userName={userData.name}
+            userRole={userData.role}
+            onLogout={handleLogout}
+            onNewBooking={() => setIsBookingWizardOpen(true)}
+            onDateClick={() => {
+              setSelectedDate(new Date());
+              setIsDateCalendarOpen(true);
+            }}
+          />
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <div></div>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Создание новой заявки</DialogTitle>
-                    <DialogDescription>Заполните данные для формирования заявки с автоматическим расчётом стоимости</DialogDescription>
-                  </DialogHeader>
-                  
-                  <Tabs defaultValue="main" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="main">Основная инфо</TabsTrigger>
-                      <TabsTrigger value="custom" className="flex items-center gap-1">
-                        <Icon name="Plus" size={14} />
-                        Свои поля
-                      </TabsTrigger>
-                    </TabsList>
+          <NewRequestDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            newRequest={newRequest}
+            setNewRequest={setNewRequest}
+            selectedServices={selectedServices}
+            setSelectedServices={setSelectedServices}
+            requestCustomFields={requestCustomFields}
+            addRequestCustomField={addRequestCustomField}
+            updateRequestCustomField={updateRequestCustomField}
+            removeRequestCustomField={removeRequestCustomField}
+            services={services}
+            fleet={fleet}
+            calculatePrice={calculatePrice}
+            onSubmit={handleCreateBooking}
+          />
 
-                    <TabsContent value="main" className="mt-4">
-                      <div className="grid gap-6 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="client">Клиент</Label>
-                        <Input 
-                          id="client" 
-                          placeholder="ФИО или название компании"
-                          value={newRequest.client}
-                          onChange={(e) => setNewRequest({...newRequest, client: e.target.value})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Телефон</Label>
-                        <Input 
-                          id="phone" 
-                          placeholder="+7 (999) 123-45-67"
-                          value={newRequest.phone}
-                          onChange={(e) => setNewRequest({...newRequest, phone: e.target.value})}
-                        />
-                      </div>
-                    </div>
+          {activeSection === 'dashboard' && (
+            <div className="space-y-4 md:space-y-6">
+              <DashboardCards bookings={bookings} onNavigate={setActiveSection} />
 
-                    <div className="space-y-2">
-                      <Label>Услуги (можно выбрать несколько)</Label>
-                      <div className="p-4 border rounded-lg space-y-3 bg-sidebar/30">
-                        {services.map(service => {
-                          const isSelected = selectedServices.some(s => s.id === service.id);
-                          const selectedService = selectedServices.find(s => s.id === service.id);
-                          
-                          return (
-                            <div key={service.id} className="flex items-center gap-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
